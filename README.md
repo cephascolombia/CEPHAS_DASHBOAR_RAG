@@ -1,4 +1,18 @@
-# DashboardRAG
+# Dashboard RAG
+
+![Dashboard RAG Application](./nexus-rag.png)
+
+## Overview
+
+Dashboard RAG is an advanced web interface designed for **Retrieval-Augmented Generation (RAG)** systems. It empowers users to securely connect their enterprise documents to advanced Large Language Models (LLMs) to retrieve precise, context-aware answers. The application features secure multi-tenant isolation, ensuring that each organization's data remains private and securely segmented.
+
+## Key Features
+- **Knowledge Augmented Intelligence:** Seamlessly integrate your organization's proprietary data with powerful LLMs.
+- **Secure Workspaces:** Built-in multi-tenant isolation per workspace ID.
+- **Enterprise Grade Security:** Designed with compliance and robust encryption standards in mind (SOC2 Compliant, AES-256 Encrypted).
+- **Modern User Interface:** A sleek, responsive login and dashboard experience optimized for productivity.
+
+---
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.2.1.
 
