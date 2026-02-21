@@ -1,6 +1,6 @@
 # Dashboard RAG
 
-![Dashboard RAG Application](./nexus-rag.png)
+![Dashboard RAG Application](./img/nexus-rag.png)
 
 ## Overview
 
