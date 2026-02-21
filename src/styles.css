@@ -1,1 +1,36 @@
-/* You can add global styles to this file, and also import other style files */
+/* @vscode-ignore-next-line css-unknownatrule */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles from the user's HTML */
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.glass-effect {
+    background: rgba(19, 127, 236, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(19, 127, 236, 0.1);
+}
+
+.ai-gradient {
+    background: radial-gradient(circle at center, rgba(19, 127, 236, 0.15) 0%, transparent 70%);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+}

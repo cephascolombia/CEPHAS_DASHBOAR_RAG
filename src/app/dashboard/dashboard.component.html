@@ -1,0 +1,364 @@
+<!-- Sidebar Navigation -->
+<aside
+    class="w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full bg-white dark:bg-background-dark fixed top-0 left-0 bottom-0 z-20">
+    <div class="p-6 flex items-center gap-3">
+        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
+            <span class="material-icons-round text-xl">dataset</span>
+        </div>
+        <h1 class="font-bold text-lg tracking-tight">RAG.Engine</h1>
+    </div>
+
+    <nav class="flex-1 px-4 space-y-1">
+        <a routerLink="/dashboard"
+            class="flex items-center gap-3 px-3 py-2.5 bg-primary/10 text-primary rounded-lg font-medium cursor-pointer">
+            <span class="material-icons-round text-[20px]">description</span>
+            <span>Documents</span>
+        </a>
+        <a routerLink="/dashboard"
+            class="flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg transition-all cursor-pointer">
+            <span class="material-icons-round text-[20px]">folder_special</span>
+            <span>Collections</span>
+        </a>
+        <a routerLink="/dashboard"
+            class="flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg transition-all cursor-pointer">
+            <span class="material-icons-round text-[20px]">vpn_key</span>
+            <span>API Keys</span>
+        </a>
+        <a routerLink="/dashboard"
+            class="flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg transition-all cursor-pointer">
+            <span class="material-icons-round text-[20px]">settings</span>
+            <span>Settings</span>
+        </a>
+    </nav>
+
+    <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+        <div class="bg-slate-100 dark:bg-slate-800/50 p-3 rounded-xl flex items-center gap-3 cursor-pointer"
+            routerLink="/login">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmsp_FuMqWgJr5j72tEgB_5Hzgzwq61RV6PKtnA9v8IVJMavxp6z_b6ROOn6pZi6zYt_642mXy618VScq_-4Y4vxVONYj6ZvOsvoz596mYtmeuZhPCe8PhdnX9JlK735vxJg8fogcTNbQIiihk3f3U39HiTdSlXV2je9WcEDK33zojs32pxeRO3vbw2cNsAdEoj5xiMm_XdVvz3z5IudkCcnRvoiyS-r3ZDPrrKqW6LaIsW7gwEdRuRLEYv1shVDDKx-yrUI1Rq2FX"
+                alt="User avatar portrait" class="w-8 h-8 rounded-full" data-alt="User avatar portrait">
+            <div class="flex-1 min-w-0">
+                <p class="text-xs font-semibold truncate">Alex Rivera</p>
+                <p class="text-[10px] text-slate-500 truncate">Pro Account</p>
+            </div>
+            <span class="material-icons-round text-slate-400 text-sm">logout</span>
+        </div>
+    </div>
+</aside>
+
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full bg-background-light dark:bg-background-dark overflow-hidden ml-64">
+    <!-- Header -->
+    <header
+        class="h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 bg-white dark:bg-background-dark/50 backdrop-blur-sm z-10 sticky top-0">
+        <div class="flex items-center gap-4 flex-1">
+            <div class="relative w-full max-w-md">
+                <span
+                    class="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+                <input type="text"
+                    class="w-full pl-10 pr-4 py-1.5 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/50 placeholder:text-slate-500"
+                    placeholder="Search documents, folders...">
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div
+                class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700">
+                <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Tenant: Acme-GenAI-Prod</span>
+                <span class="material-icons-round text-sm text-slate-400 cursor-pointer">expand_more</span>
+            </div>
+            <button class="relative p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+                <span class="material-icons-round">notifications</span>
+                <span
+                    class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-background-dark"></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Content Body -->
+    <div class="flex-1 flex flex-col p-8 overflow-hidden h-[calc(100vh-4rem)]">
+        <!-- Breadcrumbs & Actions -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+                <nav class="flex items-center gap-2 text-sm text-slate-500 mb-1">
+                    <span class="hover:text-primary cursor-pointer transition-colors">Root</span>
+                    <span class="material-icons-round text-sm">chevron_right</span>
+                    <span class="hover:text-primary cursor-pointer transition-colors">Project Q4</span>
+                    <span class="material-icons-round text-sm">chevron_right</span>
+                    <span class="text-slate-900 dark:text-slate-200 font-medium">Compliance Docs</span>
+                </nav>
+                <h2 class="text-2xl font-bold">Compliance Docs</h2>
+            </div>
+            <div class="flex items-center gap-3">
+                <button
+                    class="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium text-sm transition-all">
+                    <span class="material-icons-round text-lg">create_new_folder</span>
+                    <span>New Folder</span>
+                </button>
+                <button
+                    class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium text-sm transition-all shadow-lg shadow-primary/20">
+                    <span class="material-icons-round text-lg">upload_file</span>
+                    <span>Upload File</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- File Explorer Grid -->
+        <div
+            class="flex-1 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden flex flex-col shadow-sm min-h-0">
+            <div class="overflow-y-auto custom-scrollbar flex-1">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur shadow-sm">
+                        <tr class="border-b border-slate-100 dark:border-slate-800">
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider w-10">
+                                <input type="checkbox"
+                                    class="rounded bg-transparent border-slate-300 dark:border-slate-700 text-primary focus:ring-primary/20">
+                            </th>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Name
+                            </th>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status
+                            </th>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Size
+                            </th>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Modified
+                            </th>
+                            <th
+                                class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                        <!-- Folder Row -->
+                        <tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td class="px-6 py-4">
+                                <input type="checkbox"
+                                    class="rounded bg-transparent border-slate-300 dark:border-slate-700 text-primary focus:ring-primary/20">
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-icons-round text-amber-400">folder</span>
+                                    <span
+                                        class="font-medium cursor-pointer hover:text-primary">Legal_Frameworks_2023</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span
+                                    class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[11px] rounded uppercase font-bold tracking-tight">System
+                                    Folder</span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-500">—</td>
+                            <td class="px-6 py-4 text-sm text-slate-500">2 hrs ago</td>
+                            <td class="px-6 py-4 text-right">
+                                <div
+                                    class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg"
+                                        title="Rename"><span class="material-icons-round text-lg">edit</span></button>
+                                    <button
+                                        class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg"
+                                        title="Delete"><span class="material-icons-round text-lg">delete</span></button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- File Row: Indexed -->
+                        <tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td class="px-6 py-4">
+                                <input type="checkbox"
+                                    class="rounded bg-transparent border-slate-300 dark:border-slate-700 text-primary focus:ring-primary/20">
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-icons-round text-primary">picture_as_pdf</span>
+                                    <span class="font-medium">Data_Privacy_GDPR_v2.pdf</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-1.5 text-emerald-500 text-xs font-semibold">
+                                    <span class="material-icons-round text-sm">check_circle</span>
+                                    <span>Indexed</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-500">4.2 MB</td>
+                            <td class="px-6 py-4 text-sm text-slate-500">Oct 24, 2023</td>
+                            <td class="px-6 py-4 text-right">
+                                <div
+                                    class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg"
+                                        title="Download"><span
+                                            class="material-icons-round text-lg">download</span></button>
+                                    <button
+                                        class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg"
+                                        title="Rename"><span class="material-icons-round text-lg">edit</span></button>
+                                    <button
+                                        class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg"
+                                        title="Delete"><span class="material-icons-round text-lg">delete</span></button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- File Row: Processing -->
+                        <tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td class="px-6 py-4">
+                                <input type="checkbox"
+                                    class="rounded bg-transparent border-slate-300 dark:border-slate-700 text-primary focus:ring-primary/20">
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-icons-round text-slate-400">article</span>
+                                    <span class="font-medium">Audit_Report_Final.docx</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-1.5 text-primary text-xs font-semibold animate-pulse">
+                                    <span class="material-icons-round text-sm spin">sync</span>
+                                    <span>Vectorizing...</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-500">12.8 MB</td>
+                            <td class="px-6 py-4 text-sm text-slate-500">Just now</td>
+                            <td class="px-6 py-4 text-right">
+                                <div
+                                    class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg"
+                                        title="Download"><span
+                                            class="material-icons-round text-lg">download</span></button>
+                                    <button
+                                        class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg"
+                                        title="Rename"><span class="material-icons-round text-lg">edit</span></button>
+                                    <button
+                                        class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg"
+                                        title="Delete"><span class="material-icons-round text-lg">delete</span></button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- File Row: Indexed -->
+                        <tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td class="px-6 py-4">
+                                <input type="checkbox"
+                                    class="rounded bg-transparent border-slate-300 dark:border-slate-700 text-primary focus:ring-primary/20">
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-icons-round text-primary">picture_as_pdf</span>
+                                    <span class="font-medium">Cybersecurity_Guidelines.pdf</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-1.5 text-emerald-500 text-xs font-semibold">
+                                    <span class="material-icons-round text-sm">check_circle</span>
+                                    <span>Indexed</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-500">2.1 MB</td>
+                            <td class="px-6 py-4 text-sm text-slate-500">Oct 20, 2023</td>
+                            <td class="px-6 py-4 text-right">
+                                <div
+                                    class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg"
+                                        title="Download"><span
+                                            class="material-icons-round text-lg">download</span></button>
+                                    <button
+                                        class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg"
+                                        title="Rename"><span class="material-icons-round text-lg">edit</span></button>
+                                    <button
+                                        class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg"
+                                        title="Delete"><span class="material-icons-round text-lg">delete</span></button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- File Row: Error -->
+                        <tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td class="px-6 py-4">
+                                <input type="checkbox"
+                                    class="rounded bg-transparent border-slate-300 dark:border-slate-700 text-primary focus:ring-primary/20">
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-icons-round text-red-400">error_outline</span>
+                                    <span class="font-medium">Encrypted_Financials.zip</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-1.5 text-red-500 text-xs font-semibold">
+                                    <span class="material-icons-round text-sm">error</span>
+                                    <span>Extraction Failed</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-500">156 KB</td>
+                            <td class="px-6 py-4 text-sm text-slate-500">Oct 19, 2023</td>
+                            <td class="px-6 py-4 text-right">
+                                <div
+                                    class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg"
+                                        title="Download"><span
+                                            class="material-icons-round text-lg">download</span></button>
+                                    <button
+                                        class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg"
+                                        title="Rename"><span class="material-icons-round text-lg">edit</span></button>
+                                    <button
+                                        class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg"
+                                        title="Delete"><span class="material-icons-round text-lg">delete</span></button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination/Footer -->
+            <div
+                class="mt-auto px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-sm text-slate-500 bg-white dark:bg-slate-900 sticky bottom-0 z-10">
+                <p>Showing 5 of 124 documents</p>
+                <div class="flex items-center gap-2">
+                    <button
+                        class="px-3 py-1 border border-slate-200 dark:border-slate-700 rounded hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                        disabled>Previous</button>
+                    <div class="flex items-center gap-1 px-2">
+                        <span
+                            class="w-8 h-8 flex items-center justify-center bg-primary text-white rounded font-medium">1</span>
+                        <span
+                            class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 rounded cursor-pointer">2</span>
+                        <span
+                            class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 rounded cursor-pointer">3</span>
+                    </div>
+                    <button
+                        class="px-3 py-1 border border-slate-200 dark:border-slate-700 rounded hover:bg-slate-50 dark:hover:bg-slate-800">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Notification (RAG Progress) -->
+    <div
+        class="fixed bottom-6 right-6 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl p-4 transform translate-y-0 transition-transform z-30">
+        <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                <span class="text-xs font-bold uppercase tracking-wider">Ingestion Service</span>
+            </div>
+            <button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <span class="material-icons-round text-sm">close</span>
+            </button>
+        </div>
+        <div class="space-y-3">
+            <div>
+                <div class="flex justify-between text-xs mb-1">
+                    <span class="text-slate-500">Processing Audit_Report_Final.docx</span>
+                    <span class="font-medium">65%</span>
+                </div>
+                <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div class="w-[65%] h-full bg-primary rounded-full"></div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] text-slate-400">
+                <span class="material-icons-round text-xs">auto_fix_high</span>
+                <span>Generating embeddings using text-embedding-ada-002...</span>
+            </div>
+        </div>
+    </div>
+</main>
