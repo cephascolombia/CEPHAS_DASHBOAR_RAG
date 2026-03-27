@@ -1,0 +1,43 @@
+<div class="flex-1 flex flex-col items-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative h-full overflow-hidden">
+    <!-- Chat History / Empty State -->
+    <div class="flex-1 w-full max-w-3xl overflow-y-auto custom-scrollbar flex flex-col gap-4 p-8">
+        
+        <!-- Empty State Welcome -->
+        <div *ngIf="chatMessages.length === 0" class="flex flex-col items-center justify-center h-full text-center space-y-4 animate-fade-in mt-10">
+            <div class="w-20 h-20 bg-primary/10 dark:bg-primary/20 shadow-lg rounded-2xl flex items-center justify-center p-3 border border-primary/20">
+                <span class="material-icons-round text-[48px] text-primary">dataset</span>
+            </div>
+            <h2 class="text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Welcome to Nexus RAG</h2>
+            <p class="text-slate-500 dark:text-slate-400 max-w-lg">
+                Your intelligent financial assistant. Analyze reports, forecast trends, and audit your ledger with enterprise-grade precision.
+            </p>
+        </div>
+
+        <!-- Messages -->
+        <div *ngFor="let msg of chatMessages" class="flex w-full" [ngClass]="{'justify-end': msg.role === 'user', 'justify-start': msg.role === 'assistant'}">
+            <div class="max-w-[75%] rounded-2xl px-5 py-3 text-sm shadow-sm"
+                 [ngClass]="msg.role === 'user' ? 'bg-primary text-white rounded-br-none' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-bl-none border border-slate-200 dark:border-slate-700'">
+                {{ msg.content }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Input Static at Bottom -->
+    <div class="w-full max-w-3xl px-4 py-6 mt-auto flex-shrink-0 bg-white dark:bg-slate-900">
+        <div class="flex items-center w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-2 focus-within:ring-2 focus-within:ring-primary/30 transition-shadow">
+            <button class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                <span class="material-icons-round text-xl">attach_file</span>
+            </button>
+            <input type="text" [(ngModel)]="chatInput" (keyup.enter)="sendMessage()"
+                class="flex-1 bg-transparent border-none focus:ring-0 text-sm px-3 placeholder:text-slate-400"
+                placeholder="Ask about your financial data...">
+            <button (click)="sendMessage()" [disabled]="!chatInput.trim()"
+                class="flex items-center justify-center p-2.5 bg-[#0f2838] dark:bg-primary hover:bg-[#163a52] dark:hover:bg-primary/90 text-white rounded-lg transition-colors ml-2 shadow-md disabled:opacity-50">
+                <span class="material-icons-round text-[20px] transform hover:scale-110 transition-transform">send</span>
+            </button>
+        </div>
+        <p class="text-[10px] text-center text-slate-400 mt-2">
+            Nexus RAG AI can make mistakes. Please verify important financial figures.
+        </p>
+    </div>
+</div>

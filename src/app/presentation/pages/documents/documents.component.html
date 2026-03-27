@@ -1,0 +1,233 @@
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div class="flex-1">
+        <!-- Re-located Search bar from header -->
+        <div class="relative w-full max-w-sm mb-2">
+            <span class="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+            <input type="text" [ngModel]="searchTerm" (ngModelChange)="onSearchTermChange($event)"
+                   class="w-full pl-10 pr-4 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-primary/50 placeholder:text-slate-500 shadow-sm"
+                   placeholder="Search documents, folders...">
+        </div>
+
+        <nav class="flex items-center flex-wrap gap-2 text-sm text-slate-500 mb-1">
+            <span class="hover:text-primary cursor-pointer transition-colors" (click)="navigateToBreadcrumb(-1)"
+                [ngClass]="{'font-medium text-slate-900 dark:text-slate-200': breadcrumbs.length === 0}">Root</span>
+            <ng-container *ngFor="let crumb of breadcrumbs; let i = index; let last = last">
+                <span class="material-icons-round text-sm">chevron_right</span>
+                <span class="cursor-pointer transition-colors"
+                    [ngClass]="last ? 'text-slate-900 dark:text-slate-200 font-medium cursor-default' : 'hover:text-primary'"
+                    (click)="!last ? navigateToBreadcrumb(i) : null">
+                    {{ crumb }}
+                </span>
+            </ng-container>
+        </nav>
+        <h2 class="text-2xl font-bold">{{ breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1] : 'Documents' }}</h2>
+    </div>
+    <div class="flex items-center gap-3">
+        <button (click)="createNewFolder()"
+            class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg font-medium text-sm transition-all shadow-sm focus:ring-2 focus:ring-primary/50"
+            [disabled]="isUploading">
+            <span class="material-icons-round text-lg">create_new_folder</span>
+            <span class="hidden sm:inline">New Folder</span>
+        </button>
+
+        <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)">
+        <button (click)="fileInput.click()" [disabled]="isUploading"
+            class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium text-sm transition-all shadow-lg shadow-primary/20 disabled:opacity-50">
+            <span class="material-icons-round text-lg animate-spin" *ngIf="isUploading">sync</span>
+            <span class="material-icons-round text-lg" *ngIf="!isUploading">upload_file</span>
+            <span class="hidden sm:inline">{{ isUploading ? 'Uploading...' : 'Upload File' }}</span>
+        </button>
+
+        <button *ngIf="downloadableDocumentsCount > 0" (click)="downloadSelectedDocuments()" [disabled]="isDownloading"
+            class="hidden sm:flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium text-sm transition-all shadow-lg shadow-emerald-500/20 animate-fade-in disabled:opacity-50">
+            <span class="material-icons-round text-lg animate-spin" *ngIf="isDownloading">sync</span>
+            <span class="material-icons-round text-lg" *ngIf="!isDownloading">download</span>
+            <span>Download ({{ downloadableDocumentsCount }})</span>
+        </button>
+
+        <button *ngIf="selectedDocuments.size > 0" (click)="deleteSelectedDocuments()"
+            class="hidden sm:flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium text-sm transition-all shadow-lg shadow-red-500/20 animate-fade-in">
+            <span class="material-icons-round text-lg">delete</span>
+            <span>Delete ({{ selectedDocuments.size }})</span>
+        </button>
+    </div>
+</div>
+
+<div class="flex-1 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden flex flex-col shadow-sm min-h-0">
+    <div class="overflow-y-auto custom-scrollbar flex-1">
+        <table class="w-full text-left border-collapse">
+            <thead class="sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur shadow-sm">
+                <tr class="border-b border-slate-100 dark:border-slate-800">
+                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider w-10">
+                        <input type="checkbox" [checked]="isAllSelected" (change)="toggleAllSelection($event)"
+                            class="rounded bg-transparent border-slate-300 dark:border-slate-700 text-primary focus:ring-primary/20 cursor-pointer">
+                    </th>
+                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Size</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Modified</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                <tr *ngFor="let doc of paginatedDocuments"
+                    class="group hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                    [class.bg-primary/5]="isSelected(doc)">
+                    <td class="px-6 py-4">
+                        <input type="checkbox" [checked]="isSelected(doc)"
+                            (change)="toggleDocumentSelection(doc, $event)"
+                            class="rounded bg-transparent border-slate-300 dark:border-slate-700 text-primary focus:ring-primary/20 cursor-pointer">
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3 cursor-pointer" (click)="openDocumentOrFolder(doc)">
+                            <span class="material-icons-round" [ngClass]="{
+                                'text-amber-400': getFileIcon(doc.name) === 'folder',
+                                'text-primary': getFileIcon(doc.name) === 'picture_as_pdf',
+                                'text-red-400': getFileIcon(doc.name) === 'archive',
+                                'text-slate-400': getFileIcon(doc.name) === 'article'
+                            }">{{ getFileIcon(doc.name) }}</span>
+                            <span class="font-medium hover:text-primary transition-colors">{{ doc.name }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div *ngIf="doc.status === 'Indexed' || doc.status?.toLowerCase() === 'completed'"
+                            class="flex items-center gap-1.5 text-emerald-500 text-xs font-semibold">
+                            <span class="material-icons-round text-sm">check_circle</span>
+                            <span>{{ doc.status }}</span>
+                        </div>
+                        <div *ngIf="doc.status === 'Extraction Failed' || doc.status?.toLowerCase() === 'error'"
+                            class="flex items-center gap-1.5 text-red-500 text-xs font-semibold">
+                            <span class="material-icons-round text-sm">error</span>
+                            <span>{{ doc.status }}</span>
+                        </div>
+                        <div *ngIf="doc.status === 'System Folder' || (!doc.name.includes('.'))"
+                            class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-medium">
+                            <span class="material-icons-round text-sm">folder</span>
+                            <span class="uppercase tracking-wide text-[10px]">Folder</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-500">
+                        {{ doc.size ? doc.size : '--' }}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-500">
+                        {{ doc.modifiedAt ? (doc.modifiedAt | date:'short') : 'Unknown' }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button *ngIf="getFileIcon(doc.name) !== 'folder'" (click)="downloadDocument(doc); $event.stopPropagation()"
+                                class="p-1.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded transition-colors"
+                                title="Download">
+                                <span class="material-icons-round text-[20px]">download</span>
+                            </button>
+                            <button (click)="confirmDeleteSingle(doc, $event)"
+                                class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded transition-colors"
+                                title="Delete">
+                                <span class="material-icons-round text-[20px]">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr *ngIf="documents.length === 0 && !isLoadingDocuments" class="animate-fade-in">
+                    <td colspan="6" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400">
+                            <div class="w-16 h-16 mb-4 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center border border-slate-100 dark:border-slate-800">
+                                <span class="material-icons-round text-3xl">folder_open</span>
+                            </div>
+                            <h3 class="font-medium text-slate-900 dark:text-slate-200 mb-1">No documents found</h3>
+                            <p class="text-sm">Upload files or create a folder to get started.</p>
+                        </div>
+                    </td>
+                </tr>
+                <tr *ngIf="isLoadingDocuments">
+                    <td colspan="6" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center justify-center text-slate-500">
+                            <span class="material-icons-round text-3xl animate-spin text-primary mb-2">sync</span>
+                            <p class="text-sm">Loading contents...</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination/Footer -->
+    <div class="mt-auto px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-sm text-slate-500 bg-white dark:bg-slate-900 sticky bottom-0 z-10">
+        <p *ngIf="filteredDocuments.length > 0">
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ currentRangeEnd }} of {{ filteredDocuments.length }} documents
+        </p>
+        <p *ngIf="filteredDocuments.length === 0">Showing 0 documents</p>
+        <div class="flex items-center gap-2" *ngIf="totalPages > 1">
+            <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1"
+                class="px-3 py-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                Previous
+            </button>
+            <button *ngFor="let page of pages" (click)="goToPage(page)"
+                [class.bg-primary]="currentPage === page" [class.text-white]="currentPage === page" [class.shadow-md]="currentPage === page"
+                [class.hover:bg-slate-100]="currentPage !== page" [class.dark:hover:bg-slate-800]="currentPage !== page"
+                class="px-3 py-1.5 rounded-md font-medium transition-colors">
+                {{ page }}
+            </button>
+            <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+                class="px-3 py-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                Next
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div *ngIf="showCreateFolderModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-slate-200 dark:border-slate-800 transform scale-100 transition-transform">
+        <h3 class="text-xl font-bold mb-4 text-slate-800 dark:text-slate-100">Create New Folder</h3>
+        <input type="text" [(ngModel)]="newFolderName" placeholder="Folder Name"
+            class="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg mb-4 bg-transparent focus:ring-2 focus:ring-primary/50 text-sm">
+        <div class="flex justify-end gap-3">
+            <button (click)="closeCreateFolderModal()" class="px-4 py-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm transition-colors">
+                Cancel
+            </button>
+            <button (click)="confirmCreateFolder()" [disabled]="isCreatingFolder"
+                class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium text-sm transition-colors shadow-lg shadow-primary/20 disabled:opacity-50">
+                <span class="material-icons-round text-sm animate-spin" *ngIf="isCreatingFolder">sync</span>
+                <span>{{ isCreatingFolder ? 'Creating...' : 'Create' }}</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-slate-200 dark:border-slate-800 transform scale-100 transition-transform">
+        <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-500/20 text-red-500 flex items-center justify-center mb-4">
+            <span class="material-icons-round text-[24px]">warning</span>
+        </div>
+        <h3 class="text-xl font-bold mb-2 text-slate-800 dark:text-slate-100">Delete Documents</h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">{{ deleteMessage }}</p>
+        <div class="flex justify-end gap-3">
+            <button (click)="cancelDelete()" class="px-4 py-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm transition-colors">
+                Cancel
+            </button>
+            <button (click)="executeDelete()" [disabled]="isDeleting"
+                class="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium text-sm transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50">
+                <span class="material-icons-round text-sm animate-spin" *ngIf="isDeleting">sync</span>
+                <span>{{ isDeleting ? 'Deleting...' : 'Delete' }}</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div *ngIf="toastMessage" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in" style="animation: fadeUp 0.3s ease-out forwards;">
+    <div class="flex items-center gap-3 px-4 py-3 rounded-lg shadow-2xl border" [ngClass]="{
+        'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400': toastType === 'success',
+        'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-400': toastType === 'warning',
+        'bg-red-50 border-red-200 text-red-800 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400': toastType === 'error'
+    }">
+        <span class="material-icons-round" [ngClass]="{
+            'text-emerald-500': toastType === 'success',
+            'text-amber-500': toastType === 'warning',
+            'text-red-500': toastType === 'error'
+        }">
+            {{ toastType === 'success' ? 'check_circle' : (toastType === 'warning' ? 'warning' : 'error') }}
+        </span>
+        <p class="text-sm font-medium">{{ toastMessage }}</p>
+    </div>
+</div>

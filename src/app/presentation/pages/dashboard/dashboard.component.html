@@ -1,0 +1,85 @@
+<!-- Overlay for mobile sidebar -->
+<div *ngIf="isSidebarOpen" class="fixed inset-0 bg-black/50 z-10 md:hidden backdrop-blur-sm transition-opacity"
+    (click)="toggleSidebar()"></div>
+
+<!-- Sidebar Navigation -->
+<aside
+    class="w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full bg-white dark:bg-background-dark fixed top-0 left-0 bottom-0 z-20 transition-transform duration-300 ease-in-out"
+    [ngClass]="{'translate-x-0': isSidebarOpen, '-translate-x-full md:translate-x-0': !isSidebarOpen}">
+    <div class="p-6 flex items-center gap-3">
+        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
+            <span class="material-icons-round text-xl">dataset</span>
+        </div>
+        <h1 class="font-bold text-lg tracking-tight">Nexus RAG</h1>
+    </div>
+
+    <nav class="flex-1 px-4 space-y-1">
+        <a [routerLink]="['/dashboard/documents']" routerLinkActive="bg-primary/10 text-primary font-medium"
+            [routerLinkActiveOptions]="{exact: false}"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all cursor-pointer text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50">
+            <span class="material-icons-round text-[20px]">description</span>
+            <span>Documents</span>
+        </a>
+        <a [routerLink]="['/dashboard/ia']" routerLinkActive="bg-primary/10 text-primary font-medium"
+            [routerLinkActiveOptions]="{exact: false}"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all cursor-pointer text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50">
+            <span class="material-icons-round text-[20px]">smart_toy</span>
+            <span>IA</span>
+        </a>
+        <a [routerLink]="['/dashboard']"
+            class="flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg transition-all cursor-pointer">
+            <span class="material-icons-round text-[20px]">settings</span>
+            <span>Settings</span>
+        </a>
+    </nav>
+
+    <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+        <div class="bg-slate-100 dark:bg-slate-800/50 p-3 rounded-xl flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+                {{ username.charAt(0).toUpperCase() }}
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-xs font-semibold truncate">{{ username }}</p>
+                <p class="text-[10px] text-slate-500 truncate">{{ companyName }}</p>
+            </div>
+            <button (click)="logout()"
+                class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded transition-colors text-slate-400 hover:text-primary"
+                title="Cerrar sesión">
+                <span class="material-icons-round text-sm">logout</span>
+            </button>
+        </div>
+    </div>
+</aside>
+
+<!-- Main Content Area -->
+<main
+    class="flex-1 flex flex-col h-screen bg-background-light dark:bg-background-dark overflow-hidden ml-0 md:ml-64 transition-all duration-300">
+    <!-- Header -->
+    <header
+        class="h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 md:px-8 bg-white dark:bg-background-dark/50 backdrop-blur-sm z-10 sticky top-0 shrink-0">
+        <div class="flex items-center gap-4 flex-1">
+            <!-- Mobile Menu Toggle -->
+            <button class="md:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg shrink-0"
+                (click)="toggleSidebar()">
+                <span class="material-icons-round">menu</span>
+            </button>
+        </div>
+        <div class="flex items-center gap-2 md:gap-4 shrink-0">
+            <div
+                class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700">
+                <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                <span class="text-xs font-medium text-slate-600 dark:text-slate-300">{{ companyName }}</span>
+            </div>
+            <button class="relative p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+                <span class="material-icons-round">notifications</span>
+                <span
+                    class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-background-dark"></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Routed Content Body -->
+    <div class="flex-1 flex flex-col p-6 overflow-hidden min-h-0">
+        <router-outlet></router-outlet>
+    </div>
+</main>

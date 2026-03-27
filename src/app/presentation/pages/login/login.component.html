@@ -87,12 +87,16 @@
                             <span class="material-icons text-slate-500 text-sm">corporate_fare</span>
                         </div>
                         <input type="text" name="workspace" id="workspace"
+                            [(ngModel)]="nit"
                             class="block w-full pl-10 bg-surface-dark border border-border-dark rounded-lg py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                            placeholder="e.g. acme-corp" required>
+                            placeholder="e.g. 900123456" required>
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                             <span class="text-slate-500 text-sm">.nexus-rag.ai</span>
                         </div>
                     </div>
+                    <p *ngIf="errors.nit" class="text-red-400 text-xs mt-1 flex items-center gap-1">
+                        <span class="material-icons text-xs">error_outline</span>{{ errors.nit }}
+                    </p>
                     <p class="text-xs text-slate-500 mt-1">Unique identifier for your organization's instance.</p>
                 </div>
 
@@ -103,10 +107,14 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <span class="material-icons text-slate-500 text-sm">alternate_email</span>
                         </div>
-                        <input type="email" name="email" id="email"
+                        <input type="text" name="email" id="email"
+                            [(ngModel)]="username"
                             class="block w-full pl-10 bg-surface-dark border border-border-dark rounded-lg py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                            placeholder="name@company.com" required>
+                            placeholder="admin_tech" required>
                     </div>
+                    <p *ngIf="errors.username" class="text-red-400 text-xs mt-1 flex items-center gap-1">
+                        <span class="material-icons text-xs">error_outline</span>{{ errors.username }}
+                    </p>
                 </div>
 
                 <!-- Password -->
@@ -121,9 +129,13 @@
                             <span class="material-icons text-slate-500 text-sm">lock_outline</span>
                         </div>
                         <input type="password" name="password" id="password"
+                            [(ngModel)]="password"
                             class="block w-full pl-10 bg-surface-dark border border-border-dark rounded-lg py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                             placeholder="••••••••" required>
                     </div>
+                    <p *ngIf="errors.password" class="text-red-400 text-xs mt-1 flex items-center gap-1">
+                        <span class="material-icons text-xs">error_outline</span>{{ errors.password }}
+                    </p>
                 </div>
 
                 <!-- Remember Me -->
@@ -134,10 +146,19 @@
                 </div>
 
                 <!-- Submit Button -->
-                <button type="submit"
-                    class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all">
-                    Sign in to Workspace
+                <button type="submit" [disabled]="isLoading"
+                    class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                    <span *ngIf="!isLoading">Sign in to Workspace</span>
+                    <span *ngIf="isLoading" class="flex items-center gap-2">
+                        <span class="material-icons animate-spin text-sm">autorenew</span>
+                        Signing in...
+                    </span>
                 </button>
+
+                <!-- Error message -->
+                <div *ngIf="errorMessage" class="text-red-400 text-sm text-center mt-2 bg-red-900/20 border border-red-700/30 rounded-lg p-3">
+                    {{ errorMessage }}
+                </div>
             </form>
 
             <!-- SSO Divider -->
