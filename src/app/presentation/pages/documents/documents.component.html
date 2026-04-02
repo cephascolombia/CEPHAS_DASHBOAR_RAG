@@ -2,10 +2,11 @@
     <div class="flex-1">
         <!-- Re-located Search bar from header -->
         <div class="relative w-full max-w-sm mb-2">
-            <span class="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+            <span
+                class="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
             <input type="text" [ngModel]="searchTerm" (ngModelChange)="onSearchTermChange($event)"
-                   class="w-full pl-10 pr-4 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-primary/50 placeholder:text-slate-500 shadow-sm"
-                   placeholder="Search documents, folders...">
+                class="w-full pl-10 pr-4 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-primary/50 placeholder:text-slate-500 shadow-sm"
+                placeholder="Search documents, folders...">
         </div>
 
         <nav class="flex items-center flex-wrap gap-2 text-sm text-slate-500 dark:text-slate-400 mb-1">
@@ -20,7 +21,8 @@
                 </span>
             </ng-container>
         </nav>
-        <h2 class="text-2xl font-bold">{{ breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1] : 'Documents' }}</h2>
+        <h2 class="text-2xl font-bold">{{ breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1] : 'Documents' }}
+        </h2>
     </div>
     <div class="flex items-center gap-3">
         <button (click)="createNewFolder()"
@@ -50,23 +52,53 @@
             <span class="material-icons-round text-lg">delete</span>
             <span>Delete ({{ selectedDocuments.size }})</span>
         </button>
+
+        <!-- Botón Sincronizar RAG: visible siempre en la carpeta raíz, destaca si hay pendientes -->
+        <button (click)="syncRagDocuments()" [disabled]="isSyncing || !hasPendingSync"
+            class="relative flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+            [ngClass]="hasPendingSync
+                ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/30 animate-fade-in'
+                : 'bg-slate-300 dark:bg-slate-800 text-slate-500 dark:text-slate-500 shadow-none'"
+            title="Procesar documentos pendientes con el motor RAG">
+            <!-- Badge con el número de documentos pendientes -->
+            <span *ngIf="pendingSyncCount > 0 && !isSyncing"
+                class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow animate-pulse">
+                {{ pendingSyncCount }}
+            </span>
+            <span class="material-icons-round text-lg" [ngClass]="{'animate-spin': isSyncing}">
+                {{ isSyncing ? 'sync' : 'cloud_sync' }}
+            </span>
+            <span class="hidden sm:inline">{{ isSyncing ? 'Sincronizando...' : 'Sincronizar RAG' }}</span>
+        </button>
     </div>
 </div>
 
-<div class="flex-1 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden flex flex-col shadow-sm min-h-0">
+<div
+    class="flex-1 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden flex flex-col shadow-sm min-h-0">
     <div class="overflow-auto custom-scrollbar flex-1 relative">
         <table class="w-full min-w-max text-left border-collapse whitespace-nowrap">
             <thead class="sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur shadow-sm">
                 <tr class="border-b border-slate-100 dark:border-slate-800">
-                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider w-10">
+                    <th
+                        class="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider w-10">
                         <input type="checkbox" [checked]="isAllSelected" (change)="toggleAllSelection($event)"
                             class="rounded bg-transparent border-slate-300 dark:border-slate-700 text-primary focus:ring-primary/20 cursor-pointer">
                     </th>
-                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Name</th>
-                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Size</th>
-                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Modified</th>
-                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider text-right">Actions</th>
+                    <th
+                        class="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                        Name</th>
+                    <th
+                        class="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                        Status</th>
+                    <th
+                        class="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                        Size</th>
+                    <th
+                        class="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                        Modified</th>
+                    <th
+                        class="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider text-right">
+                        Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -90,17 +122,22 @@
                         </div>
                     </td>
                     <td class="px-6 py-4">
-                        <div *ngIf="doc.status === 'Indexed' || doc.status?.toLowerCase() === 'completed'"
+                        <div *ngIf="doc.status === 'Indexed' || doc.status?.toLowerCase() === 'completed' || doc.status === 'PROCESSED'"
                             class="flex items-center gap-1.5 text-emerald-500 text-xs font-semibold">
                             <span class="material-icons-round text-sm">check_circle</span>
-                            <span>{{ doc.status }}</span>
+                            <span>{{ doc.status === 'PROCESSED' ? 'Procesado' : doc.status }}</span>
+                        </div>
+                        <div *ngIf="doc.status === 'SYNCHRONIZE'"
+                            class="flex items-center gap-1.5 text-amber-500 text-xs font-semibold">
+                            <span class="material-icons-round text-sm">sync</span>
+                            <span>Sincronizar</span>
                         </div>
                         <div *ngIf="doc.status === 'Extraction Failed' || doc.status?.toLowerCase() === 'error'"
                             class="flex items-center gap-1.5 text-red-500 text-xs font-semibold">
                             <span class="material-icons-round text-sm">error</span>
                             <span>{{ doc.status }}</span>
                         </div>
-                        <div *ngIf="doc.status === 'System Folder' || (!doc.name.includes('.'))"
+                        <div *ngIf="(doc.status === 'System Folder' || !doc.name.includes('.')) && doc.status !== 'SYNCHRONIZE' && doc.status !== 'PROCESSED'"
                             class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-medium">
                             <span class="material-icons-round text-sm">folder</span>
                             <span class="uppercase tracking-wide text-[10px]">Folder</span>
@@ -113,8 +150,10 @@
                         {{ doc.modifiedAt ? (doc.modifiedAt | date:'short') : 'Unknown' }}
                     </td>
                     <td class="px-6 py-4">
-                        <div class="flex items-center justify-end gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                            <button *ngIf="getFileIcon(doc.name) !== 'folder'" (click)="downloadDocument(doc); $event.stopPropagation()"
+                        <div
+                            class="flex items-center justify-end gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                            <button *ngIf="getFileIcon(doc.name) !== 'folder'"
+                                (click)="downloadDocument(doc); $event.stopPropagation()"
                                 class="p-1.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded transition-colors"
                                 title="Download">
                                 <span class="material-icons-round text-[20px]">download</span>
@@ -130,7 +169,8 @@
                 <tr *ngIf="documents.length === 0 && !isLoadingDocuments" class="animate-fade-in">
                     <td colspan="6" class="px-6 py-12 text-center">
                         <div class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400">
-                            <div class="w-16 h-16 mb-4 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center border border-slate-100 dark:border-slate-800">
+                            <div
+                                class="w-16 h-16 mb-4 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center border border-slate-100 dark:border-slate-800">
                                 <span class="material-icons-round text-3xl">folder_open</span>
                             </div>
                             <h3 class="font-medium text-slate-900 dark:text-slate-200 mb-1">No documents found</h3>
@@ -149,11 +189,13 @@
             </tbody>
         </table>
     </div>
-    
+
     <!-- Pagination/Footer -->
-    <div class="mt-auto px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 sticky bottom-0 z-10">
+    <div
+        class="mt-auto px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 sticky bottom-0 z-10">
         <p *ngIf="filteredDocuments.length > 0">
-            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ currentRangeEnd }} of {{ filteredDocuments.length }} documents
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ currentRangeEnd }} of {{ filteredDocuments.length
+            }} documents
         </p>
         <p *ngIf="filteredDocuments.length === 0">Showing 0 documents</p>
         <div class="flex items-center gap-2" *ngIf="totalPages > 1">
@@ -161,8 +203,8 @@
                 class="px-3 py-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 Previous
             </button>
-            <button *ngFor="let page of pages" (click)="goToPage(page)"
-                [class.bg-primary]="currentPage === page" [class.text-white]="currentPage === page" [class.shadow-md]="currentPage === page"
+            <button *ngFor="let page of pages" (click)="goToPage(page)" [class.bg-primary]="currentPage === page"
+                [class.text-white]="currentPage === page" [class.shadow-md]="currentPage === page"
                 [class.hover:bg-slate-100]="currentPage !== page" [class.dark:hover:bg-slate-800]="currentPage !== page"
                 class="px-3 py-1.5 rounded-md font-medium transition-colors">
                 {{ page }}
@@ -176,13 +218,16 @@
 </div>
 
 <!-- Modals -->
-<div *ngIf="showCreateFolderModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
-    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-slate-200 dark:border-slate-800 transform scale-100 transition-transform">
+<div *ngIf="showCreateFolderModal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+    <div
+        class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-slate-200 dark:border-slate-800 transform scale-100 transition-transform">
         <h3 class="text-xl font-bold mb-4 text-slate-800 dark:text-slate-100">Create New Folder</h3>
         <input type="text" [(ngModel)]="newFolderName" placeholder="Folder Name"
             class="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg mb-4 bg-transparent focus:ring-2 focus:ring-primary/50 text-sm">
         <div class="flex justify-end gap-3">
-            <button (click)="closeCreateFolderModal()" class="px-4 py-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm transition-colors">
+            <button (click)="closeCreateFolderModal()"
+                class="px-4 py-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm transition-colors">
                 Cancel
             </button>
             <button (click)="confirmCreateFolder()" [disabled]="isCreatingFolder"
@@ -194,15 +239,19 @@
     </div>
 </div>
 
-<div *ngIf="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
-    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-slate-200 dark:border-slate-800 transform scale-100 transition-transform">
-        <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-500/20 text-red-500 flex items-center justify-center mb-4">
+<div *ngIf="showDeleteModal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+    <div
+        class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-slate-200 dark:border-slate-800 transform scale-100 transition-transform">
+        <div
+            class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-500/20 text-red-500 flex items-center justify-center mb-4">
             <span class="material-icons-round text-[24px]">warning</span>
         </div>
         <h3 class="text-xl font-bold mb-2 text-slate-800 dark:text-slate-100">Delete Documents</h3>
         <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">{{ deleteMessage }}</p>
         <div class="flex justify-end gap-3">
-            <button (click)="cancelDelete()" class="px-4 py-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm transition-colors">
+            <button (click)="cancelDelete()"
+                class="px-4 py-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm transition-colors">
                 Cancel
             </button>
             <button (click)="executeDelete()" [disabled]="isDeleting"
@@ -215,7 +264,8 @@
 </div>
 
 <!-- Toast -->
-<div *ngIf="toastMessage" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in" style="animation: fadeUp 0.3s ease-out forwards;">
+<div *ngIf="toastMessage" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in"
+    style="animation: fadeUp 0.3s ease-out forwards;">
     <div class="flex items-center gap-3 px-4 py-3 rounded-lg shadow-2xl border" [ngClass]="{
         'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400': toastType === 'success',
         'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-400': toastType === 'warning',

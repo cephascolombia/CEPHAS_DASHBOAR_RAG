@@ -39,11 +39,29 @@ export class AuthService {
     localStorage.setItem(STORAGE_KEYS.COMPANY_NAME, name);
   }
 
+  getRagDatabase(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.RAG_DATABASE);
+  }
+
+  setRagDatabase(db: string): void {
+    localStorage.setItem(STORAGE_KEYS.RAG_DATABASE, db);
+  }
+
+  getApiKeyModel(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.API_KEY_MODEL);
+  }
+
+  setApiKeyModel(key: string): void {
+    localStorage.setItem(STORAGE_KEYS.API_KEY_MODEL, key);
+  }
+
   logout(): void {
     localStorage.removeItem(STORAGE_KEYS.TOKEN);
     localStorage.removeItem(STORAGE_KEYS.NIT);
     localStorage.removeItem(STORAGE_KEYS.USERNAME);
     localStorage.removeItem(STORAGE_KEYS.S3_FOLDER_NAME);
     localStorage.removeItem(STORAGE_KEYS.COMPANY_NAME);
+    localStorage.removeItem(STORAGE_KEYS.RAG_DATABASE);
+    localStorage.removeItem(STORAGE_KEYS.API_KEY_MODEL);
   }
 }

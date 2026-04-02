@@ -34,6 +34,8 @@ export const STORAGE_KEYS = {
   USERNAME: 'auth_username',
   S3_FOLDER_NAME: 's3_folder_name',
   COMPANY_NAME: 'company_name',
+  RAG_DATABASE: 'rag_database',
+  API_KEY_MODEL: 'api_key_model',
 };
 
 // =============================================

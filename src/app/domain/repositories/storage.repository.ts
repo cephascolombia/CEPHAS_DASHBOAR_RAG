@@ -9,4 +9,5 @@ export abstract class StorageRepository {
   abstract deleteDocuments(nit: string, fileKeys: string[]): Observable<any>;
   abstract getPresignedUrl(nit: string, fileKey: string): Observable<{ url: string }>;
   abstract downloadZip(nit: string, fileKeys: string[]): Observable<Blob>;
+  abstract syncRagDocuments(payload: any): Observable<any>;
 }

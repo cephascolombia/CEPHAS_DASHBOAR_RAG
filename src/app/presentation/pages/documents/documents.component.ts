@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../infrastructure/services/auth.service';
 import { GetDocumentsUseCase } from '../../../application/use-cases/get-documents.usecase';
@@ -8,6 +8,9 @@ import { UploadDocumentUseCase } from '../../../application/use-cases/upload-doc
 import { DeleteDocumentsUseCase } from '../../../application/use-cases/delete-documents.usecase';
 import { DownloadZipUseCase } from '../../../application/use-cases/download-zip.usecase';
 import { GetPresignedUrlUseCase } from '../../../application/use-cases/get-presigned-url.usecase';
+import { SyncRagDocumentsUseCase } from '../../../application/use-cases/sync-rag-documents.usecase';
+import { GetCompanyConfigUseCase } from '../../../application/use-cases/get-company-config.usecase';
+import { CompanyConfig } from '../../../domain/repositories/company.repository';
 import { StorageDocument } from '../../../domain/models/storage-document.model';
 
 @Component({
@@ -18,7 +21,7 @@ import { StorageDocument } from '../../../domain/models/storage-document.model';
   styleUrl: './documents.component.css',
   host: { class: 'flex-1 flex flex-col min-h-0' }
 })
-export class DocumentsComponent implements OnInit {
+export class DocumentsComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private getDocumentsUseCase = inject(GetDocumentsUseCase);
   private createFolderUseCase = inject(CreateFolderUseCase);
@@ -26,6 +29,8 @@ export class DocumentsComponent implements OnInit {
   private deleteDocumentsUseCase = inject(DeleteDocumentsUseCase);
   private downloadZipUseCase = inject(DownloadZipUseCase);
   private getPresignedUrlUseCase = inject(GetPresignedUrlUseCase);
+  private syncRagDocumentsUseCase = inject(SyncRagDocumentsUseCase);
+  private getCompanyConfigUseCase = inject(GetCompanyConfigUseCase);
 
   nit = this.authService.getNit() || '';
   currentPrefix: string = '';
@@ -46,12 +51,15 @@ export class DocumentsComponent implements OnInit {
   pendingDeleteDocs: StorageDocument[] = [];
   isDeleting = false;
   isDownloading = false;
+  isSyncing = false;
 
   currentPage = 1;
   itemsPerPage = 10;
 
   toastMessage: string | null = null;
   toastType: 'success' | 'warning' | 'error' = 'warning';
+
+  private pollingInterval: any = null;
 
   showToast(message: string, type: 'success' | 'warning' | 'error' = 'warning') {
     this.toastMessage = message;
@@ -63,6 +71,98 @@ export class DocumentsComponent implements OnInit {
     if (this.nit) {
       this.loadDocuments();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.stopPolling();
+  }
+
+  get hasPendingSync(): boolean {
+    return this.documents.some(doc => doc.status === 'SYNCHRONIZE');
+  }
+
+  get pendingSyncCount(): number {
+    return this.documents.filter(doc => doc.status === 'SYNCHRONIZE').length;
+  }
+
+  private startPolling(): void {
+    if (this.pollingInterval) return;
+    this.pollingInterval = setInterval(() => {
+      this.getDocumentsUseCase.execute(this.nit, this.currentPrefix).subscribe({
+        next: (res) => {
+          if (Array.isArray(res)) {
+            this.documents = res;
+          } else if (res && Array.isArray(res.data)) {
+            this.documents = res.data;
+          } else if (res && Array.isArray(res.items)) {
+            this.documents = res.items;
+          }
+          // Si ya no hay documentos pendientes, parar el polling
+          const stillPending = this.documents.some(d => d.status === 'SYNCHRONIZE');
+          if (!stillPending) {
+            this.stopPolling();
+            this.isSyncing = false;
+            this.showToast('¡Todos los documentos han sido procesados.', 'success');
+          }
+        },
+        error: () => this.stopPolling()
+      });
+    }, 5000);
+  }
+
+  private stopPolling(): void {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+  }
+
+  syncRagDocuments(): void {
+    if (this.isSyncing) return;
+    this.isSyncing = true;
+
+    const token = this.authService.getToken() || '';
+    const apiKeyModel = this.authService.getApiKeyModel();
+    const database = this.authService.getRagDatabase();
+    console.log(token, apiKeyModel, database);
+    // Buscamos la configuración desde el API de la empresa para usar siempre datos frescos
+    this.getCompanyConfigUseCase.execute(this.nit).subscribe({
+      next: (config: CompanyConfig) => {
+        const resolvedApiKey = config.api_key_model ? config.api_key_model : token;
+        const resolvedDb = config.connectionString || config.database || '';
+        
+        // Guardar en caché
+        if (resolvedApiKey) this.authService.setApiKeyModel(resolvedApiKey);
+        if (resolvedDb) this.authService.setRagDatabase(resolvedDb);
+
+        this.executeSyncWebhook(token, resolvedApiKey, resolvedDb);
+      },
+      error: (err: unknown) => {
+        console.error('Error obteniendo configuración de empresa:', err);
+        this.isSyncing = false;
+        this.showToast('Error al obtener la configuración necesaria para sincronizar.', 'error');
+      }
+    });
+  }
+
+  private executeSyncWebhook(token: string, apiKeyModel: string, database: string): void {
+    const payload = {
+      nit: this.nit,
+      token: token,
+      database: database,
+      model_ia_key: apiKeyModel
+    };
+    this.syncRagDocumentsUseCase.execute(payload).subscribe({
+      next: () => {
+        this.showToast('Proceso de sincronización RAG iniciado. Actualizando estados...', 'success');
+        this.startPolling();
+      },
+      error: (err) => {
+        console.error('Error al sincronizar con el webhook RAG:', err);
+        this.isSyncing = false;
+        this.showToast('Error al iniciar la sincronización. Por favor intenta de nuevo.', 'error');
+      }
+    });
   }
 
   get breadcrumbs(): string[] {
@@ -181,7 +281,7 @@ export class DocumentsComponent implements OnInit {
       next: () => {
         this.isCreatingFolder = false;
         this.closeCreateFolderModal();
-        this.loadDocuments(); 
+        this.loadDocuments();
       },
       error: (err) => {
         this.isCreatingFolder = false;

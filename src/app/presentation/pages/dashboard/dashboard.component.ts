@@ -41,6 +41,18 @@ export class DashboardComponent implements OnInit {
             } else {
               this.companyName = `Tenant: ${this.nit}`;
             }
+            if (config.api_key_model) {
+              this.authService.setApiKeyModel(config.api_key_model);
+            }
+            if (config.database) {
+              this.authService.setRagDatabase(config.database);
+            } else if (config.connectionString) {
+              // Extraer el nombre de la base de datos del connectionString si no hay campo explícito
+              const dbMatch = config.connectionString.match(/Database=([^;]+)/i);
+              if (dbMatch && dbMatch[1]) {
+                this.authService.setRagDatabase(dbMatch[1].trim());
+              }
+            }
           }
         },
         error: (err) => console.error('Error fetching company config', err)
