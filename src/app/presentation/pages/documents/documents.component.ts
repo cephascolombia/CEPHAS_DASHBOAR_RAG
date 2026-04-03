@@ -58,6 +58,8 @@ export class DocumentsComponent implements OnInit, OnDestroy {
 
   toastMessage: string | null = null;
   toastType: 'success' | 'warning' | 'error' = 'warning';
+  globalPendingSyncCount = 0;
+  private isCountingGlobal = false;
 
   private pollingInterval: any = null;
 
@@ -78,16 +80,64 @@ export class DocumentsComponent implements OnInit, OnDestroy {
   }
 
   get hasPendingSync(): boolean {
-    return this.documents.some(doc => doc.status === 'SYNCHRONIZE');
+    return this.globalPendingSyncCount > 0;
   }
 
   get pendingSyncCount(): number {
-    return this.documents.filter(doc => doc.status === 'SYNCHRONIZE').length;
+    return this.globalPendingSyncCount;
+  }
+
+  loadGlobalSyncCount() {
+    if (!this.nit || this.isCountingGlobal) return;
+    this.isCountingGlobal = true;
+    let currentCount = 0;
+    const visited = new Set<string>();
+
+    const traverse = (prefix: string) => {
+      this.getDocumentsUseCase.execute(this.nit, prefix).subscribe({
+        next: (res) => {
+          let docs: any[] = [];
+          if (Array.isArray(res)) docs = res;
+          else if (res && Array.isArray(res.data)) docs = res.data;
+          else if (res && Array.isArray(res.items)) docs = res.items;
+
+          for (const doc of docs) {
+            if (this.getFileIcon(doc.name) === 'folder') {
+              const nextPrefix = prefix ? `${prefix}${doc.name}/` : `${doc.name}/`;
+              if (!visited.has(nextPrefix)) {
+                visited.add(nextPrefix);
+                traverse(nextPrefix);
+              }
+            } else if (doc.status === 'SYNCHRONIZE') {
+              currentCount++;
+            }
+          }
+
+          this.globalPendingSyncCount = currentCount;
+          this.checkForSyncCompletion();
+        },
+        error: (err) => console.error('Error fetching global rag status', err)
+      });
+    };
+
+    traverse('');
+
+    // Reset flag block so we can poll again
+    setTimeout(() => this.isCountingGlobal = false, 4000);
+  }
+
+  private checkForSyncCompletion() {
+    if (this.globalPendingSyncCount === 0 && this.isSyncing) {
+      this.stopPolling();
+      this.isSyncing = false;
+      this.showToast('¡Todos los documentos han sido procesados!', 'success');
+    }
   }
 
   private startPolling(): void {
     if (this.pollingInterval) return;
     this.pollingInterval = setInterval(() => {
+      this.loadGlobalSyncCount();
       this.getDocumentsUseCase.execute(this.nit, this.currentPrefix).subscribe({
         next: (res) => {
           if (Array.isArray(res)) {
@@ -96,13 +146,6 @@ export class DocumentsComponent implements OnInit, OnDestroy {
             this.documents = res.data;
           } else if (res && Array.isArray(res.items)) {
             this.documents = res.items;
-          }
-          // Si ya no hay documentos pendientes, parar el polling
-          const stillPending = this.documents.some(d => d.status === 'SYNCHRONIZE');
-          if (!stillPending) {
-            this.stopPolling();
-            this.isSyncing = false;
-            this.showToast('¡Todos los documentos han sido procesados.', 'success');
           }
         },
         error: () => this.stopPolling()
@@ -124,13 +167,23 @@ export class DocumentsComponent implements OnInit, OnDestroy {
     const token = this.authService.getToken() || '';
     const apiKeyModel = this.authService.getApiKeyModel();
     const database = this.authService.getRagDatabase();
-    console.log(token, apiKeyModel, database);
     // Buscamos la configuración desde el API de la empresa para usar siempre datos frescos
     this.getCompanyConfigUseCase.execute(this.nit).subscribe({
       next: (config: CompanyConfig) => {
-        const resolvedApiKey = config.api_key_model ? config.api_key_model : token;
+        const resolvedApiKey = config.api_key_model ? config.api_key_model : '';
         const resolvedDb = config.connectionString || config.database || '';
-        
+
+        const missingFields: string[] = [];
+        if (!token) missingFields.push('Token (Sesión)');
+        if (!resolvedApiKey) missingFields.push('API KEY para IA');
+        if (!resolvedDb) missingFields.push('Base de Datos');
+
+        if (missingFields.length > 0) {
+          this.isSyncing = false;
+          this.showToast(`No se puede sincronizar. Falta configurar: ${missingFields.join(', ')}.`, 'error');
+          return;
+        }
+
         // Guardar en caché
         if (resolvedApiKey) this.authService.setApiKeyModel(resolvedApiKey);
         if (resolvedDb) this.authService.setRagDatabase(resolvedDb);
@@ -227,6 +280,8 @@ export class DocumentsComponent implements OnInit, OnDestroy {
     this.documentsError = '';
     this.selectedDocuments.clear();
 
+    this.loadGlobalSyncCount();
+
     this.getDocumentsUseCase.execute(this.nit, this.currentPrefix).subscribe({
       next: (res) => {
         if (Array.isArray(res)) {
@@ -261,7 +316,12 @@ export class DocumentsComponent implements OnInit, OnDestroy {
   confirmCreateFolder() {
     const folderName = this.newFolderName.trim();
     if (!folderName) {
-      alert('El nombre de la carpeta no puede estar vacío.');
+      this.showToast('El nombre de la carpeta no puede estar vacío.', 'warning');
+      return;
+    }
+
+    if (/\s/.test(folderName)) {
+      this.showToast('El nombre de la carpeta no debe tener espacios. Usa guiones bajos (_) o normales (-), por ejemplo: retenciones_ivan o retenciones-ivan', 'warning');
       return;
     }
 
@@ -291,12 +351,52 @@ export class DocumentsComponent implements OnInit, OnDestroy {
     });
   }
 
-  onFileSelected(event: any) {
+  private isPdfEncrypted(file: File): Promise<boolean> {
+    return new Promise((resolve) => {
+      const lowerName = file.name.toLowerCase();
+      if (!lowerName.endsWith('.pdf')) {
+        resolve(false);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        // La directiva /Encrypt suele indicar que el PDF está protegido por contraseña
+        if (text && text.includes('/Encrypt')) {
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      };
+      reader.onerror = () => resolve(false);
+
+      // Usamos los primeros y últimos kilobytes para ser eficientes con archivos grandes
+      const sliceSize = 1024 * 512; // 512KB
+      if (file.size > sliceSize * 2) {
+        const startSlice = file.slice(0, sliceSize);
+        const endSlice = file.slice(file.size - sliceSize);
+        const blob = new Blob([startSlice, endSlice]);
+        reader.readAsText(blob, 'ISO-8859-1');
+      } else {
+        reader.readAsText(file, 'ISO-8859-1');
+      }
+    });
+  }
+
+  async onFileSelected(event: any) {
     const file: File = event.target.files[0];
     if (!file) return;
 
     if (!this.nit) {
       alert('Error: No se encontró un NIT válido en la sesión.');
+      return;
+    }
+
+    const isEncrypted = await this.isPdfEncrypted(file);
+    if (isEncrypted) {
+      this.showToast(`El archivo "${file.name}" está protegido con contraseña. Debe estar sin clave para sincronizarlo.`, 'error');
+      event.target.value = '';
       return;
     }
 
