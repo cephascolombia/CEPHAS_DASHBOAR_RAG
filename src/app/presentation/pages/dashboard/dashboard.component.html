@@ -14,19 +14,20 @@
     </div>
 
     <nav class="flex-1 px-4 space-y-1">
-        <a [routerLink]="['/dashboard/documents']" routerLinkActive="bg-primary/10 text-primary font-medium"
+        <a *appHasPermission="'documents_view'" [routerLink]="['/dashboard/documents']" routerLinkActive="bg-primary/10 text-primary font-medium"
             [routerLinkActiveOptions]="{exact: false}"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all cursor-pointer text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50">
             <span class="material-icons-round text-[20px]">description</span>
             <span>Documents</span>
         </a>
-        <a [routerLink]="['/dashboard/ia']" routerLinkActive="bg-primary/10 text-primary font-medium"
+        <a *appHasPermission="'ia_view'" [routerLink]="['/dashboard/ia']" routerLinkActive="bg-primary/10 text-primary font-medium"
             [routerLinkActiveOptions]="{exact: false}"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all cursor-pointer text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50">
             <span class="material-icons-round text-[20px]">smart_toy</span>
             <span>IA</span>
         </a>
-        <a [routerLink]="['/dashboard']"
+        <a *appHasPermission="'settings_view'" [routerLink]="['/dashboard/settings']" routerLinkActive="bg-primary/10 text-primary font-medium"
+            [routerLinkActiveOptions]="{exact: false}"
             class="flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg transition-all cursor-pointer">
             <span class="material-icons-round text-[20px]">settings</span>
             <span>Settings</span>
@@ -35,7 +36,8 @@
 
     <div class="p-4 border-t border-slate-200 dark:border-slate-800">
         <div class="bg-slate-100 dark:bg-slate-800/50 p-3 rounded-xl flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+            <div
+                class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
                 {{ username.charAt(0).toUpperCase() }}
             </div>
             <div class="flex-1 min-w-0">

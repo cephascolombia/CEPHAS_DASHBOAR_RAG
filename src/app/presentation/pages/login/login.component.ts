@@ -3,6 +3,7 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { LoginUseCase } from '../../../application/usecases/login.usecase';
+import { AuthService } from '../../../infrastructure/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -14,25 +15,31 @@ import { LoginUseCase } from '../../../application/usecases/login.usecase';
 export class LoginComponent {
   private router = inject(Router);
   private loginUseCase = inject(LoginUseCase);
+  private authService = inject(AuthService);
 
   nit = '';
-  username = '';
+  email = '';
   password = '';
   isLoading = false;
   errorMessage = '';
+  isPasswordVisible = false;
+  
+  togglePasswordVisibility(): void {
+    this.isPasswordVisible = !this.isPasswordVisible;
+  }
   
   // Validation error messages
   errors = {
     nit: '',
-    username: '',
+    email: '',
     password: ''
   };
 
   private validateForm(): boolean {
     let valid = true;
-    this.errors = { nit: '', username: '', password: '' };
+    this.errors = { nit: '', email: '', password: '' };
 
-    // Validate NIT: required, only numbers, minimum 9 digits
+    // Validate NIT: required, only numbers, minimum 6 digits
     if (!this.nit.trim()) {
       this.errors.nit = 'El NIT es requerido.';
       valid = false;
@@ -44,15 +51,13 @@ export class LoginComponent {
       valid = false;
     }
 
-    // Validate username: required, no spaces, min 3 chars
-    if (!this.username.trim()) {
-      this.errors.username = 'El usuario es requerido.';
+    // Validate email: required, valid format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!this.email.trim()) {
+      this.errors.email = 'El correo electrónico es requerido.';
       valid = false;
-    } else if (this.username.trim().length < 3) {
-      this.errors.username = 'El usuario debe tener al menos 3 caracteres.';
-      valid = false;
-    } else if (/\s/.test(this.username)) {
-      this.errors.username = 'El usuario no puede contener espacios.';
+    } else if (!emailRegex.test(this.email.trim())) {
+      this.errors.email = 'Debe ser un correo electrónico válido.';
       valid = false;
     }
 
@@ -76,11 +81,20 @@ export class LoginComponent {
 
     this.loginUseCase.execute({
       nit: this.nit.trim(),
-      username: this.username.trim(),
+      email: this.email.trim(),
       password: this.password
     }).subscribe({
       next: () => {
         this.isLoading = false;
+        
+        // Block empty permissions array to prevent loop/unauthorized access
+        const permissions = this.authService.getPermissions();
+        if (!permissions || permissions.length === 0) {
+          this.authService.logout();
+          this.errorMessage = 'Tu usuario no tiene ningún permiso o vista asignada. Contacta al administrador para que te asigne permisos.';
+          return;
+        }
+
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {

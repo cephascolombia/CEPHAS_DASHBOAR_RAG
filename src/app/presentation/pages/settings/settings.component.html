@@ -1,0 +1,28 @@
+<div class="flex flex-col h-full">
+    <!-- Settings Header -->
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Settings</h1>
+        <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Configuración y administración del workspace.</p>
+    </div>
+
+    <div class="flex gap-6 flex-1 min-h-0">
+        <!-- Side Tabs -->
+        <nav class="w-52 shrink-0 space-y-1">
+            <a [routerLink]="['users']" routerLinkActive="bg-primary/10 text-primary font-semibold border-l-2 !border-primary"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer border-l-2 border-transparent">
+                <span class="material-icons-round text-[18px]">group</span>
+                Usuarios
+            </a>
+            <a [routerLink]="['roles']" routerLinkActive="bg-primary/10 text-primary font-semibold border-l-2 !border-primary"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer border-l-2 border-transparent">
+                <span class="material-icons-round text-[18px]">admin_panel_settings</span>
+                Roles y Permisos
+            </a>
+        </nav>
+
+        <!-- Content -->
+        <div class="flex-1 overflow-auto min-h-0">
+            <router-outlet></router-outlet>
+        </div>
+    </div>
+</div>

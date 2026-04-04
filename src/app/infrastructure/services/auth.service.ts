@@ -23,6 +23,21 @@ export class AuthService {
     return localStorage.getItem(STORAGE_KEYS.USERNAME);
   }
 
+  getPermissions(): string[] {
+    const perms = localStorage.getItem(STORAGE_KEYS.PERMISSIONS);
+    if (!perms) return [];
+    try {
+      return JSON.parse(perms) as string[];
+    } catch {
+      return [];
+    }
+  }
+
+  hasPermission(permission: string): boolean {
+    const permissions = this.getPermissions();
+    return permissions.includes(permission);
+  }
+
   getS3FolderName(): string | null {
     return localStorage.getItem(STORAGE_KEYS.S3_FOLDER_NAME);
   }
@@ -63,5 +78,6 @@ export class AuthService {
     localStorage.removeItem(STORAGE_KEYS.COMPANY_NAME);
     localStorage.removeItem(STORAGE_KEYS.RAG_DATABASE);
     localStorage.removeItem(STORAGE_KEYS.API_KEY_MODEL);
+    localStorage.removeItem(STORAGE_KEYS.PERMISSIONS);
   }
 }

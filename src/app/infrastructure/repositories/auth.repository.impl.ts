@@ -21,8 +21,9 @@ export class AuthRepositoryImpl extends AuthRepository {
       tap(user => {
         if (user.token) {
           localStorage.setItem(STORAGE_KEYS.TOKEN, user.token);
-          localStorage.setItem(STORAGE_KEYS.NIT, user.nit ?? request.nit);
-          localStorage.setItem(STORAGE_KEYS.USERNAME, user.username ?? request.username);
+          localStorage.setItem(STORAGE_KEYS.NIT, user.companyNit ?? request.nit);
+          localStorage.setItem(STORAGE_KEYS.USERNAME, user.email ?? request.email);
+          localStorage.setItem(STORAGE_KEYS.PERMISSIONS, JSON.stringify(user.permissions || []));
         }
       })
     );

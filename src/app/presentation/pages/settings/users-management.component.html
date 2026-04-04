@@ -1,0 +1,423 @@
+<!-- HEADER -->
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white">Usuarios</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Gestiona los usuarios de la plataforma y sus roles
+            de acceso.</p>
+    </div>
+    <button *ngIf="canCreateUser" (click)="openCreatePanel()"
+        class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg text-sm shadow-md shadow-primary/20 transition-all">
+        <span class="material-icons-round text-lg">person_add</span>
+        Nuevo Usuario
+    </button>
+</div>
+
+<!-- ERROR GLOBAL -->
+<div *ngIf="errorMessage() && !isPanelOpen()"
+    class="mb-4 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 text-red-600 dark:text-red-400 rounded-lg text-sm flex items-center gap-2">
+    <span class="material-icons-round text-lg">error_outline</span>
+    {{ errorMessage() }}
+</div>
+
+<!-- TABLE CARD -->
+<ng-container *ngIf="canViewUsers; else noUsersAccess">
+<div
+    class="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+    <!-- Loading State -->
+    <div *ngIf="isLoading()" class="flex items-center justify-center py-16">
+        <div class="flex flex-col items-center gap-3 text-slate-400">
+            <span class="material-icons-round text-4xl animate-spin">sync</span>
+            <span class="text-sm">Cargando usuarios...</span>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading() && users().length === 0"
+        class="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-500">
+        <span class="material-icons-round text-5xl mb-3 opacity-40">group_off</span>
+        <p class="text-base font-medium">No hay usuarios registrados</p>
+        <p class="text-sm mt-1">Crea el primer usuario haciendo clic en "+ Nuevo Usuario"</p>
+    </div>
+
+    <!-- Data Table -->
+    <div *ngIf="!isLoading() && users().length > 0" class="overflow-auto">
+        <table class="w-full text-left text-sm border-collapse">
+            <thead class="bg-slate-50/95 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
+                <tr>
+                    <th
+                        class="px-5 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                        Nombre</th>
+                    <th
+                        class="px-5 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                        Email</th>
+                    <th
+                        class="px-5 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                        Rol</th>
+                    <th
+                        class="px-5 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                        Cargo</th>
+                    <th
+                        class="px-5 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                        Documento</th>
+                    <th
+                        class="px-5 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider text-right">
+                        Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                <tr *ngFor="let user of users(); trackBy: trackById"
+                    class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group">
+                    <td class="px-5 py-4">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+                                {{ (user.firstName || user.fullName || user.email).charAt(0).toUpperCase() }}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-medium text-slate-800 dark:text-white truncate">{{ user.fullName ||
+                                    (user.firstName + ' ' + user.firstSurname) }}</p>
+                                <p class="text-[11px] text-slate-400 truncate">{{ user.identityDocument }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-5 py-4 text-slate-600 dark:text-slate-300">{{ user.email }}</td>
+                    <td class="px-5 py-4">
+                        <span
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary dark:text-blue-300">
+                            {{ user.roleName || getRoleName(user.rolId) }}
+                        </span>
+                    </td>
+                    <td class="px-5 py-4 text-slate-500 dark:text-slate-400">{{ user.cargo || '—' }}</td>
+                    <td class="px-5 py-4 text-slate-500 dark:text-slate-400">
+                        <span class="text-xs">{{ user.documentTypeName || getDocTypeName(user.documentTypeId) }}</span>
+                        <span class="ml-1 font-mono text-xs">{{ user.identityDocument }}</span>
+                    </td>
+                    <td class="px-5 py-4">
+                        <div
+                            class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button *ngIf="canEditUser" (click)="openEditPanel(user)"
+                                class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                                title="Editar usuario">
+                                <span class="material-icons-round text-[18px]">edit</span>
+                            </button>
+                            <button *ngIf="canDeleteUser" (click)="requestDelete(user.userId)"
+                                class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                                title="Eliminar usuario">
+                                <span class="material-icons-round text-[18px]">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div
+            class="flex items-center justify-between px-5 py-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+            <span class="text-xs text-slate-500">
+                Página {{ pageNumber }} de {{ totalPages }}
+                <span *ngIf="totalCount > 0"> &bull; {{ totalCount }} usuarios total</span>
+            </span>
+            <div class="flex items-center gap-1.5">
+                <button (click)="prevPage()" [disabled]="pageNumber <= 1"
+                    class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                    <span class="material-icons-round text-sm">chevron_left</span>
+                </button>
+                <button (click)="nextPage()" [disabled]="pageNumber >= totalPages"
+                    class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                    <span class="material-icons-round text-sm">chevron_right</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</ng-container>
+
+<ng-template #noUsersAccess>
+    <div class="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-xl">
+        <span class="material-icons-round text-5xl mb-3 opacity-40">lock</span>
+        <p class="text-base font-medium">Acceso denegado</p>
+        <p class="text-sm mt-1">No tienes permiso para visualizar la lista de usuarios.</p>
+    </div>
+</ng-template>
+
+
+<!-- ================================================ -->
+<!-- DELETE CONFIRMATION MODAL                        -->
+<!-- ================================================ -->
+<div *ngIf="confirmDeleteId !== null" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="cancelDelete()"></div>
+    <div
+        class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-6 w-full max-w-sm text-center animate-fade-in">
+        <div class="w-14 h-14 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+            <span class="material-icons-round text-red-500 text-2xl">person_remove</span>
+        </div>
+        <h3 class="text-base font-bold text-slate-800 dark:text-white mb-1">¿Eliminar usuario?</h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-5">
+            Vas a eliminar a <strong class="text-slate-700 dark:text-slate-200">{{ confirmDeleteName }}</strong>. Esta
+            acción no se puede deshacer.
+        </p>
+        <div class="flex items-center gap-3 justify-center">
+            <button (click)="cancelDelete()" [disabled]="isDeleting() !== null"
+                class="px-5 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50">
+                Cancelar
+            </button>
+            <button (click)="confirmDelete()" [disabled]="isDeleting() !== null"
+                class="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg shadow-md shadow-red-500/20 transition-all disabled:opacity-60">
+                <span *ngIf="isDeleting() !== null" class="material-icons-round text-sm animate-spin">autorenew</span>
+                <span *ngIf="isDeleting() === null" class="material-icons-round text-sm">delete</span>
+                {{ isDeleting() !== null ? 'Eliminando...' : 'Sí, eliminar' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================ -->
+<!-- SLIDE-OVER PANEL (Create / Edit User)           -->
+<!-- ================================================ -->
+<div *ngIf="isPanelOpen()" class="fixed inset-0 z-50 overflow-hidden" role="dialog">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="closePanel()"></div>
+
+    <!-- Panel -->
+    <div
+        class="absolute inset-y-0 right-0 w-full max-w-xl flex flex-col bg-white dark:bg-slate-900 shadow-2xl transform transition-transform duration-300">
+        <!-- Panel Header -->
+        <div
+            class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center"
+                    [ngClass]="isEditMode() ? 'bg-amber-100 dark:bg-amber-500/10' : 'bg-primary/10'">
+                    <span class="material-icons-round text-lg"
+                        [ngClass]="isEditMode() ? 'text-amber-600 dark:text-amber-400' : 'text-primary'">
+                        {{ isEditMode() ? 'manage_accounts' : 'person_add' }}
+                    </span>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-slate-800 dark:text-white text-sm">
+                        {{ isEditMode() ? 'Editar Usuario' : 'Nuevo Usuario' }}
+                    </h3>
+                    <p class="text-[11px] text-slate-500">Todos los campos marcados con * son requeridos</p>
+                </div>
+            </div>
+            <button (click)="closePanel()"
+                class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+
+        <!-- Panel Body (Scrollable Form) -->
+        <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+
+            <!-- Success / Error message inside panel -->
+            <div *ngIf="successMessage()"
+                class="px-4 py-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/40 text-green-700 dark:text-green-400 rounded-lg text-sm flex items-center gap-2">
+                <span class="material-icons-round text-base">check_circle</span>{{ successMessage() }}
+            </div>
+            <div *ngIf="errorMessage()"
+                class="px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 text-red-600 dark:text-red-400 rounded-lg text-sm flex items-center gap-2">
+                <span class="material-icons-round text-base">error_outline</span>{{ errorMessage() }}
+            </div>
+
+            <!-- Section: Credenciales -->
+            <div class="space-y-1">
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3">
+                    Credenciales de Acceso</p>
+                <!-- Email -->
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Email *</label>
+                    <input type="email" [(ngModel)]="form.email" name="email"
+                        [class.border-red-400]="formErrors['email']"
+                        class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                        placeholder="usuario@empresa.com">
+                    <p *ngIf="formErrors['email']" class="text-xs text-red-500 mt-1 flex items-center gap-1">
+                        <span class="material-icons-round text-xs">error_outline</span>{{ formErrors['email'] }}
+                    </p>
+                </div>
+                <!-- Password -->
+                <div class="space-y-1 pt-1">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Contraseña {{ isEditMode() ? '(dejar vacío para no cambiar)' : '*' }}
+                    </label>
+                    <div class="relative">
+                        <input [type]="isPasswordVisible() ? 'text' : 'password'" [(ngModel)]="form.password" name="password"
+                            [class.border-red-400]="formErrors['password']"
+                            class="w-full px-3 py-2.5 pr-10 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                            placeholder="••••••••">
+                        <button type="button" (click)="togglePasswordVisibility()" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                            <span class="material-icons-round text-xl">{{ isPasswordVisible() ? 'visibility_off' : 'visibility' }}</span>
+                        </button>
+                    </div>
+                    <p *ngIf="formErrors['password']" class="text-xs text-red-500 mt-1 flex items-center gap-1">
+                        <span class="material-icons-round text-xs">error_outline</span>{{ formErrors['password'] }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-100 dark:border-slate-800"></div>
+
+            <!-- Section: Información Personal -->
+            <div class="space-y-4">
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Información
+                    Personal</p>
+
+                <!-- Fila 1: Primer Nombre / Segundo Nombre -->
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Primer Nombre -->
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Primer Nombre
+                            *</label>
+                        <input type="text" [(ngModel)]="form.firstName" name="firstName"
+                            [class.border-red-400]="formErrors['firstName']"
+                            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                            placeholder="Juan">
+                        <p *ngIf="formErrors['firstName']" class="text-xs text-red-500 mt-1">{{ formErrors['firstName']
+                            }}</p>
+                    </div>
+                    <!-- Segundo Nombre -->
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Segundo Nombre <span
+                                class="text-slate-400 font-normal">(opcional)</span></label>
+                        <input type="text" [(ngModel)]="form.middleName" name="middleName"
+                            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                            placeholder="Carlos">
+                    </div>
+                </div>
+
+                <!-- Fila 2: Primer Apellido / Segundo Apellido -->
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Primer Apellido -->
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Primer Apellido
+                            *</label>
+                        <input type="text" [(ngModel)]="form.firstSurname" name="firstSurname"
+                            [class.border-red-400]="formErrors['firstSurname']"
+                            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                            placeholder="Pérez">
+                        <p *ngIf="formErrors['firstSurname']" class="text-xs text-red-500 mt-1">{{
+                            formErrors['firstSurname'] }}</p>
+                    </div>
+                    <!-- Segundo Apellido -->
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Segundo Apellido
+                            *</label>
+                        <input type="text" [(ngModel)]="form.secondSurname" name="secondSurname"
+                            [class.border-red-400]="formErrors['secondSurname']"
+                            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                            placeholder="García">
+                        <p *ngIf="formErrors['secondSurname']" class="text-xs text-red-500 mt-1">{{
+                            formErrors['secondSurname'] }}</p>
+                    </div>
+                </div>
+
+                <!-- Fila 3: Teléfono / Cargo -->
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Teléfono -->
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Teléfono *</label>
+                        <input type="tel" [(ngModel)]="form.phone" name="phone"
+                            [class.border-red-400]="formErrors['phone']"
+                            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                            placeholder="3001234567">
+                        <p *ngIf="formErrors['phone']" class="text-xs text-red-500 mt-1 flex items-center gap-1">
+                            <span class="material-icons-round text-xs">error_outline</span>{{ formErrors['phone'] }}
+                        </p>
+                    </div>
+                    <!-- Cargo -->
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Cargo</label>
+                        <input type="text" [(ngModel)]="form.cargo" name="cargo"
+                            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                            placeholder="Ej: Desarrollador">
+                    </div>
+                </div>
+
+                <!-- Dirección -->
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Dirección</label>
+                    <input type="text" [(ngModel)]="form.address" name="address"
+                        class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                        placeholder="Calle 123 # 45-67">
+                </div>
+
+                <!-- Fecha Contratación -->
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Fecha de
+                        Contratación</label>
+                    <input type="date" [(ngModel)]="form.fechaContratacion" name="fechaContratacion"
+                        class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all">
+                </div>
+            </div>
+
+            <div class="border-t border-slate-100 dark:border-slate-800"></div>
+
+            <!-- Section: Documento e Identidad -->
+            <div class="space-y-4">
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Documento
+                    de Identidad</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Tipo de Documento -->
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Tipo de Documento
+                            *</label>
+                        <select [(ngModel)]="form.documentTypeId" name="documentTypeId"
+                            [class.border-red-400]="formErrors['documentTypeId']"
+                            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all">
+                            <option [ngValue]="0" disabled>Seleccionar...</option>
+                            <option *ngFor="let dt of documentTypes()" [ngValue]="dt.id">{{ dt.name }}</option>
+                        </select>
+                        <p *ngIf="formErrors['documentTypeId']" class="text-xs text-red-500 mt-1">{{
+                            formErrors['documentTypeId'] }}</p>
+                    </div>
+                    <!-- Número de Documento -->
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Número de Documento
+                            *</label>
+                        <input type="text" [(ngModel)]="form.identityDocument" name="identityDocument"
+                            [class.border-red-400]="formErrors['identityDocument']"
+                            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                            placeholder="12345678">
+                        <p *ngIf="formErrors['identityDocument']" class="text-xs text-red-500 mt-1">{{
+                            formErrors['identityDocument'] }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-100 dark:border-slate-800"></div>
+
+            <!-- Section: Rol y Acceso -->
+            <div class="space-y-4">
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Rol y
+                    Acceso</p>
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Rol del Sistema
+                        *</label>
+                    <select [(ngModel)]="form.rolId" name="rolId" [class.border-red-400]="formErrors['rolId']"
+                        class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all">
+                        <option [ngValue]="0" disabled>Seleccionar rol...</option>
+                        <option *ngFor="let role of roles()" [ngValue]="role.id">{{ role.name }}</option>
+                    </select>
+                    <p *ngIf="formErrors['rolId']" class="text-xs text-red-500 mt-1">{{ formErrors['rolId'] }}</p>
+                    <p class="text-xs text-slate-400 mt-1">El rol define qué permisos tendrá el usuario en el sistema.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Footer -->
+        <div
+            class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-end gap-3">
+            <button (click)="closePanel()" [disabled]="isSaving()"
+                class="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50">
+                Cancelar
+            </button>
+            <button (click)="onSubmit()" [disabled]="isSaving()"
+                class="flex items-center gap-2 px-5 py-2 bg-primary hover:bg-primary/90 text-white text-sm font-medium rounded-lg shadow-md shadow-primary/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                <span *ngIf="isSaving()" class="material-icons-round text-sm animate-spin">autorenew</span>
+                <span *ngIf="!isSaving()" class="material-icons-round text-sm">{{ isEditMode() ? 'save' : 'person_add'
+                    }}</span>
+                {{ isSaving() ? 'Guardando...' : (isEditMode() ? 'Guardar Cambios' : 'Crear Usuario') }}
+            </button>
+        </div>
+    </div>
+</div>

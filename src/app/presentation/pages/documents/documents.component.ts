@@ -12,11 +12,12 @@ import { SyncRagDocumentsUseCase } from '../../../application/use-cases/sync-rag
 import { GetCompanyConfigUseCase } from '../../../application/use-cases/get-company-config.usecase';
 import { CompanyConfig } from '../../../domain/repositories/company.repository';
 import { StorageDocument } from '../../../domain/models/storage-document.model';
+import { HasPermissionDirective } from '../../../core/directives/has-permission.directive';
 
 @Component({
   selector: 'app-documents',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HasPermissionDirective],
   templateUrl: './documents.component.html',
   styleUrl: './documents.component.css',
   host: { class: 'flex-1 flex flex-col min-h-0' }
