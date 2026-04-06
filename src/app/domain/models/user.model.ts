@@ -53,6 +53,7 @@ export interface CreateUserRequest {
   cargo?: string;
   fechaContratacion?: string;
   isActive?: boolean;
+  createdBy?: string;
 }
 
 export interface UserListResponse {

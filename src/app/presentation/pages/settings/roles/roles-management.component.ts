@@ -1,11 +1,11 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RoleService } from '../../../infrastructure/services/role.service';
-import { PermitService } from '../../../infrastructure/services/permit.service';
-import { Role, CreateRoleRequest } from '../../../domain/models/role.model';
-import { Permit } from '../../../domain/models/permit.model';
-import { AuthService } from '../../../infrastructure/services/auth.service';
+import { RoleService } from '../../../../infrastructure/services/role.service';
+import { PermitService } from '../../../../infrastructure/services/permit.service';
+import { Role, CreateRoleRequest } from '../../../../domain/models/role.model';
+import { Permit } from '../../../../domain/models/permit.model';
+import { AuthService } from '../../../../infrastructure/services/auth.service';
 
 @Component({
   selector: 'app-roles-management',
@@ -172,7 +172,7 @@ export class RolesManagementComponent implements OnInit {
     this.successMessage.set('');
 
     const payload: CreateRoleRequest = {
-      name: this.formName.trim(),
+      name: this.formName.trim().toUpperCase(),
       description: this.formDescription.trim(),
       permissionIds: Array.from(this.selectedPermissionIds)
     };

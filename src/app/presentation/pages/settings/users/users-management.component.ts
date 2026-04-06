@@ -1,13 +1,13 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { UserService } from '../../../infrastructure/services/user.service';
-import { RoleService } from '../../../infrastructure/services/role.service';
-import { DocumentTypeService } from '../../../infrastructure/services/document-type.service';
-import { AuthService } from '../../../infrastructure/services/auth.service';
-import { UserListItem, CreateUserRequest } from '../../../domain/models/user.model';
-import { Role } from '../../../domain/models/role.model';
-import { DocumentType } from '../../../domain/models/document-type.model';
+import { UserService } from '../../../../infrastructure/services/user.service';
+import { RoleService } from '../../../../infrastructure/services/role.service';
+import { DocumentTypeService } from '../../../../infrastructure/services/document-type.service';
+import { AuthService } from '../../../../infrastructure/services/auth.service';
+import { UserListItem, CreateUserRequest } from '../../../../domain/models/user.model';
+import { Role } from '../../../../domain/models/role.model';
+import { DocumentType } from '../../../../domain/models/document-type.model';
 
 @Component({
   selector: 'app-users-management',
@@ -82,7 +82,8 @@ export class UsersManagementComponent implements OnInit {
       documentTypeId: 0,
       cargo: '',
       fechaContratacion: '',
-      isActive: true
+      isActive: true,
+      createdBy: 'SYSTEM_ADMIN'
     };
   }
 
@@ -271,6 +272,8 @@ export class UsersManagementComponent implements OnInit {
     this.form.middleName = capitalize(this.form.middleName);
     this.form.firstSurname = capitalize(this.form.firstSurname);
     this.form.secondSurname = capitalize(this.form.secondSurname);
+    this.form.cargo = capitalize(this.form.cargo);
+    this.form.createdBy = 'SYSTEM_ADMIN';
 
     // Build fullName from all name parts (not shown in form)
     const parts = [

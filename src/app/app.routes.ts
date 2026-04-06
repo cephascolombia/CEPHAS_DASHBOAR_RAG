@@ -5,8 +5,8 @@ import { DocumentsComponent } from './presentation/pages/documents/documents.com
 import { IaChatComponent } from './presentation/pages/ia-chat/ia-chat.component';
 import { Unauthorized } from './presentation/pages/unauthorized/unauthorized';
 import { SettingsComponent } from './presentation/pages/settings/settings.component';
-import { UsersManagementComponent } from './presentation/pages/settings/users-management.component';
-import { RolesManagementComponent } from './presentation/pages/settings/roles-management.component';
+import { UsersManagementComponent } from './presentation/pages/settings/users/users-management.component';
+import { RolesManagementComponent } from './presentation/pages/settings/roles/roles-management.component';
 import { authGuard, noAuthGuard, permissionGuard } from './presentation/guards/auth.guard';
 
 export const routes: Routes = [
