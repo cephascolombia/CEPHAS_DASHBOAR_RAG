@@ -61,7 +61,7 @@ export class StorageRepositoryImpl extends StorageRepository {
   }
 
   override syncRagDocuments(payload: any): Observable<any> {
-    const url = environment.webhookRagUrl;
+    const url = environment.webhookRagDocuments;
     const headers = { 'WEB_HOOK_RAG': 'cephas_rag' };
     return this.http.post(url, payload, { headers });
   }

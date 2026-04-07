@@ -7,17 +7,26 @@
             <div class="w-20 h-20 bg-primary/10 dark:bg-primary/20 shadow-lg rounded-2xl flex items-center justify-center p-3 border border-primary/20">
                 <span class="material-icons-round text-[48px] text-primary">dataset</span>
             </div>
-            <h2 class="text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Welcome to Nexus RAG</h2>
+            <h2 class="text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Bienvenido a Nexus RAG</h2>
             <p class="text-slate-500 dark:text-slate-400 max-w-lg">
-                Your intelligent financial assistant. Analyze reports, forecast trends, and audit your ledger with enterprise-grade precision.
+                Tu asistente financiero inteligente. Analiza reportes, pronostica tendencias y audita tu libro mayor con precisión empresarial.
             </p>
         </div>
 
         <!-- Messages -->
         <div *ngFor="let msg of chatMessages" class="flex w-full" [ngClass]="{'justify-end': msg.role === 'user', 'justify-start': msg.role === 'assistant'}">
-            <div class="max-w-[75%] rounded-2xl px-5 py-3 text-sm shadow-sm"
-                 [ngClass]="msg.role === 'user' ? 'bg-primary text-white rounded-br-none' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-bl-none border border-slate-200 dark:border-slate-700'">
-                {{ msg.content }}
+            <div class="max-w-[75%] rounded-2xl px-5 py-3 text-sm shadow-sm whitespace-pre-wrap leading-relaxed"
+                 [ngClass]="msg.role === 'user' ? 'bg-primary text-white rounded-br-none' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-bl-none border border-slate-200 dark:border-slate-700'"
+                 [innerHTML]="msg.content">
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div *ngIf="isLoading" class="flex w-full justify-start mt-2">
+            <div class="max-w-[75%] rounded-2xl px-5 py-4 text-sm shadow-sm bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-bl-none border border-slate-200 dark:border-slate-700 flex items-center space-x-1">
+                <div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                <div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+                <div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
             </div>
         </div>
     </div>
@@ -28,16 +37,17 @@
             <button class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
                 <span class="material-icons-round text-xl">attach_file</span>
             </button>
-            <input type="text" [(ngModel)]="chatInput" (keyup.enter)="sendMessage()"
-                class="flex-1 bg-transparent border-none focus:ring-0 text-sm px-3 placeholder:text-slate-400"
-                placeholder="Ask about your financial data...">
-            <button (click)="sendMessage()" [disabled]="!chatInput.trim()"
+            <input type="text" [(ngModel)]="chatInput" (keyup.enter)="sendMessage()" [disabled]="isLoading"
+                class="flex-1 bg-transparent border-none focus:ring-0 text-sm px-3 placeholder:text-slate-400 disabled:opacity-60"
+                placeholder="Pregunta sobre tus datos financieros...">
+            <button (click)="sendMessage()" [disabled]="!chatInput.trim() || isLoading"
                 class="flex items-center justify-center p-2.5 bg-[#0f2838] dark:bg-primary hover:bg-[#163a52] dark:hover:bg-primary/90 text-white rounded-lg transition-colors ml-2 shadow-md disabled:opacity-50">
-                <span class="material-icons-round text-[20px] transform hover:scale-110 transition-transform">send</span>
+                <span *ngIf="!isLoading" class="material-icons-round text-[20px] transform hover:scale-110 transition-transform">send</span>
+                <span *ngIf="isLoading" class="material-icons-round text-[20px] animate-spin">refresh</span>
             </button>
         </div>
         <p class="text-[10px] text-center text-slate-400 mt-2">
-            Nexus RAG AI can make mistakes. Please verify important financial figures.
+            La IA de Nexus RAG puede cometer errores. Por favor, verifica las cifras financieras importantes.
         </p>
     </div>
 </div>
