@@ -48,6 +48,9 @@ export const API_ENDPOINTS = {
   },
   PERMIT: {
     GET_ALL: '/api/v1.0/Permit',
+  },
+  CONVERSATIONS: {
+    BASE: '/api/v1.0/conversations',
   }
 };
 

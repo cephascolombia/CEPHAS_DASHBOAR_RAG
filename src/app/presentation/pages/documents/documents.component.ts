@@ -468,6 +468,7 @@ export class DocumentsComponent implements OnInit, OnDestroy {
 
   openDocumentOrFolder(doc: StorageDocument) {
     if (this.getFileIcon(doc.name) === 'folder') {
+      if (this.isLoadingDocuments) return;
       this.currentPrefix += doc.name + '/';
       this.loadDocuments();
     } else {

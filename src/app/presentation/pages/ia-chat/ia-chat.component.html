@@ -1,53 +1,136 @@
-<div class="flex-1 flex flex-col items-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative h-full overflow-hidden">
-    <!-- Chat History / Empty State -->
-    <div class="flex-1 w-full max-w-3xl overflow-y-auto custom-scrollbar flex flex-col gap-4 p-8">
-        
-        <!-- Empty State Welcome -->
-        <div *ngIf="chatMessages.length === 0" class="flex flex-col items-center justify-center h-full text-center space-y-4 animate-fade-in mt-10">
-            <div class="w-20 h-20 bg-primary/10 dark:bg-primary/20 shadow-lg rounded-2xl flex items-center justify-center p-3 border border-primary/20">
-                <span class="material-icons-round text-[48px] text-primary">dataset</span>
-            </div>
-            <h2 class="text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Bienvenido a Nexus RAG</h2>
-            <p class="text-slate-500 dark:text-slate-400 max-w-lg">
-                Tu asistente financiero inteligente. Analiza reportes, pronostica tendencias y audita tu libro mayor con precisión empresarial.
+<div class="flex h-full w-full bg-slate-50 dark:bg-slate-900 overflow-hidden">
+    <!-- Sidebar / Chat History -->
+    <div
+        class="w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-all duration-300">
+        <!-- New Chat Button -->
+        <div class="p-4 border-b border-slate-100 dark:border-slate-800">
+            <button (click)="startNewConversation()"
+                class="w-full flex items-center justify-center gap-2 p-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl transition-all shadow-sm">
+                <span class="material-icons-round text-[20px]">add</span>
+                <span class="font-medium text-sm">Nuevo Chat</span>
+            </button>
+        </div>
+
+        <!-- Conversations List -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+            <p *ngIf="conversations.length === 0" class="text-xs text-center text-slate-400 mt-4">
+                No tienes conversaciones aún.
             </p>
-        </div>
+            <div *ngFor="let conv of conversations" (click)="selectConversation(conv.id)"
+                [class.bg-primary-50]="activeConversationId === conv.id"
+                [class.dark:bg-slate-800]="activeConversationId === conv.id"
+                class="group flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
 
-        <!-- Messages -->
-        <div *ngFor="let msg of chatMessages" class="flex w-full" [ngClass]="{'justify-end': msg.role === 'user', 'justify-start': msg.role === 'assistant'}">
-            <div class="max-w-[75%] rounded-2xl px-5 py-3 text-sm shadow-sm whitespace-pre-wrap leading-relaxed"
-                 [ngClass]="msg.role === 'user' ? 'bg-primary text-white rounded-br-none' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-bl-none border border-slate-200 dark:border-slate-700'"
-                 [innerHTML]="msg.content">
-            </div>
-        </div>
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <span class="material-icons-round text-[18px] text-slate-400">chat_bubble_outline</span>
+                    <div class="flex flex-col overflow-hidden">
+                        <span
+                            class="text-sm font-medium text-slate-700 dark:text-slate-200 truncate group-hover:text-primary transition-colors">
+                            {{ conv.title || 'Nueva Conversación' }}
+                        </span>
+                        <span class="text-[10px] text-slate-400">
+                            {{ conv.createdAt | date:'short' }}
+                        </span>
+                    </div>
+                </div>
 
-        <!-- Loading Indicator -->
-        <div *ngIf="isLoading" class="flex w-full justify-start mt-2">
-            <div class="max-w-[75%] rounded-2xl px-5 py-4 text-sm shadow-sm bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-bl-none border border-slate-200 dark:border-slate-700 flex items-center space-x-1">
-                <div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
-                <div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
-                <div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+                <button (click)="confirmDelete(conv.id, $event)"
+                    class="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-all">
+                    <span class="material-icons-round text-[16px]">delete_outline</span>
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Chat Input Static at Bottom -->
-    <div class="w-full max-w-3xl px-4 py-6 mt-auto flex-shrink-0 bg-white dark:bg-slate-900">
-        <div class="flex items-center w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-2 focus-within:ring-2 focus-within:ring-primary/30 transition-shadow">
-            <button class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                <span class="material-icons-round text-xl">attach_file</span>
+    <!-- Main Chat Area -->
+    <div
+        class="flex-1 flex flex-col items-center bg-white dark:bg-slate-900 rounded-xl lg:border lg:border-slate-200 dark:lg:border-slate-800 relative h-full lg:m-2 overflow-hidden shadow-sm">
+        <!-- Chat Area Content -->
+        <div class="flex-1 w-full max-w-3xl overflow-y-auto custom-scrollbar flex flex-col gap-4 p-8">
+
+            <!-- Empty State Welcome -->
+            <div *ngIf="chatMessages.length === 0"
+                class="flex flex-col items-center justify-center h-full text-center space-y-4 animate-fade-in mt-10">
+                <div
+                    class="w-20 h-20 bg-primary/10 dark:bg-primary/20 shadow-lg rounded-2xl flex items-center justify-center p-3 border border-primary/20">
+                    <span class="material-icons-round text-[48px] text-primary">dataset</span>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Bienvenido a Nexus RAG
+                </h2>
+                <p class="text-slate-500 dark:text-slate-400 max-w-lg">
+                    Tu asistente de gestion documental es inteligente. Analiza tus reportes, documentos para darte una
+                    respuesta precisa.
+                </p>
+            </div>
+
+            <!-- Messages -->
+            <div *ngFor="let msg of chatMessages" class="flex w-full"
+                [ngClass]="{'justify-end': msg.role === 'user', 'justify-start': msg.role === 'assistant'}">
+                <div class="max-w-[75%] rounded-2xl px-5 py-3 text-sm shadow-sm whitespace-pre-wrap leading-relaxed"
+                    [ngClass]="msg.role === 'user' ? 'bg-primary text-white rounded-br-none' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-bl-none border border-slate-200 dark:border-slate-700'"
+                    [innerHTML]="msg.content">
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div *ngIf="isLoading" class="flex w-full justify-start mt-2">
+                <div
+                    class="max-w-[75%] rounded-2xl px-5 py-4 text-sm shadow-sm bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-bl-none border border-slate-200 dark:border-slate-700 flex items-center space-x-1">
+                    <div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce"
+                        style="animation-delay: 0ms;"></div>
+                    <div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce"
+                        style="animation-delay: 150ms;"></div>
+                    <div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce"
+                        style="animation-delay: 300ms;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Input Static at Bottom -->
+        <div class="w-full max-w-3xl px-4 py-6 mt-auto flex-shrink-0 bg-white dark:bg-slate-900">
+            <div
+                class="flex items-center w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-2 focus-within:ring-2 focus-within:ring-primary/30 transition-shadow">
+                <button class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                    <span class="material-icons-round text-xl">attach_file</span>
+                </button>
+                <input type="text" [(ngModel)]="chatInput" (keyup.enter)="sendMessage()" [disabled]="isLoading"
+                    class="flex-1 bg-transparent border-none focus:ring-0 text-sm px-3 placeholder:text-slate-400 disabled:opacity-60"
+                    placeholder="Pregunta sobre tus documentos ...">
+                <button (click)="sendMessage()" [disabled]="!chatInput.trim() || isLoading"
+                    class="flex items-center justify-center p-2.5 bg-[#0f2838] dark:bg-primary hover:bg-[#163a52] dark:hover:bg-primary/90 text-white rounded-lg transition-colors ml-2 shadow-md disabled:opacity-50">
+                    <span *ngIf="!isLoading"
+                        class="material-icons-round text-[20px] transform hover:scale-110 transition-transform">send</span>
+                    <span *ngIf="isLoading" class="material-icons-round text-[20px] animate-spin">refresh</span>
+                </button>
+            </div>
+            <p class="text-[10px] text-center text-slate-400 mt-2">
+                La IA de Nexus RAG puede cometer errores. Por favor, revisa los documentos importantes.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div *ngIf="showDeleteModal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+    <div
+        class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-slate-200 dark:border-slate-800 transform scale-100 transition-transform">
+        <div
+            class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-500/20 text-red-500 flex items-center justify-center mb-4">
+            <span class="material-icons-round text-[24px]">delete_forever</span>
+        </div>
+        <h3 class="text-xl font-bold mb-2 text-slate-800 dark:text-slate-100">Eliminar Chat</h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">¿Estás seguro de que deseas eliminar este chat? Esta acción no se puede deshacer y perderás el historial de la conversación.</p>
+        <div class="flex justify-end gap-3">
+            <button (click)="cancelDelete()"
+                class="px-4 py-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm transition-colors">
+                Cancelar
             </button>
-            <input type="text" [(ngModel)]="chatInput" (keyup.enter)="sendMessage()" [disabled]="isLoading"
-                class="flex-1 bg-transparent border-none focus:ring-0 text-sm px-3 placeholder:text-slate-400 disabled:opacity-60"
-                placeholder="Pregunta sobre tus datos financieros...">
-            <button (click)="sendMessage()" [disabled]="!chatInput.trim() || isLoading"
-                class="flex items-center justify-center p-2.5 bg-[#0f2838] dark:bg-primary hover:bg-[#163a52] dark:hover:bg-primary/90 text-white rounded-lg transition-colors ml-2 shadow-md disabled:opacity-50">
-                <span *ngIf="!isLoading" class="material-icons-round text-[20px] transform hover:scale-110 transition-transform">send</span>
-                <span *ngIf="isLoading" class="material-icons-round text-[20px] animate-spin">refresh</span>
+            <button (click)="executeDelete()" [disabled]="isDeleting"
+                class="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium text-sm transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50">
+                <span class="material-icons-round text-sm animate-spin" *ngIf="isDeleting">sync</span>
+                <span>{{ isDeleting ? 'Eliminando...' : 'Eliminar' }}</span>
             </button>
         </div>
-        <p class="text-[10px] text-center text-slate-400 mt-2">
-            La IA de Nexus RAG puede cometer errores. Por favor, verifica las cifras financieras importantes.
-        </p>
     </div>
 </div>
